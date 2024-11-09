@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'RulesView.dart';
+import 'package:mafia/Screens/JoinGameView.dart';
+import 'package:mafia/Screens/CreateGameView.dart';
+import 'package:mafia/Screens/RulesView.dart';
 
 class MenuView extends StatelessWidget {
   const MenuView({Key? key}) : super(key: key);
@@ -15,8 +17,8 @@ class MenuView extends StatelessWidget {
           children: [
             Image.asset(
                 'assets/images/mafia_guy.png',
-              width: 150,
-              height: 150,
+              width: 200,
+              height: 200,
             ),
             Text(
               'MAFIA',
@@ -24,14 +26,15 @@ class MenuView extends StatelessWidget {
                 textStyle: const TextStyle(
                   color: Color.fromARGB(255, 186, 86, 36),
                   fontWeight: FontWeight.bold,
-                  fontSize: 60,
+                  fontSize: 70,
+                  letterSpacing: 15,
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: (){}, child: Text('Utwórz')),
+            ElevatedButton(onPressed: () => createGame(context), child: Text('Utwórz')),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: (){}, child: Text('Dołącz')),
+            ElevatedButton(onPressed: () => joinGame(context), child: Text('Dołącz')),
             const SizedBox(height: 20),
             ElevatedButton(
                 onPressed: () => goToRulesView(context),
@@ -47,5 +50,19 @@ void goToRulesView(BuildContext context) {
   Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => RulesView()),
+  );
+}
+
+void joinGame(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => JoinGameView()),
+  );
+}
+
+void createGame(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => CreateGameView()),
   );
 }

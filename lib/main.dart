@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'MenuView.dart';
+import 'package:mafia/Screens/SplashScreen.dart';
+import 'Screens/MenuView.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,6 +13,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     return MaterialApp(
       title: 'Mafia',
       theme: ThemeData(
@@ -20,11 +23,12 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.black,
             shadowColor: Colors.yellow,
             elevation: 10,
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
             textStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -32,7 +36,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MenuView(),
+      home: const SplashScreen(),
     );
   }
 }
