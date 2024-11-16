@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/CustomTextFormField.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
+// import '../Widgets/CustomMultiselect.dart';
+import 'package:number_picker/number_picker.dart';
+import 'package:multiselect/multiselect.dart';
 
 
 class CreateGameView extends StatefulWidget {
@@ -14,19 +17,11 @@ class CreateGameView extends StatefulWidget {
 class _CreateGameViewState extends State<CreateGameView> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String playerName = '';
-  List<String> _selectedItems = [];
-  final List<MultiSelectItem<String>> _items = [
-    MultiSelectItem("Prokurator", "Prokurator"),
-    MultiSelectItem("Obrońca", "Obrońca"),
-    MultiSelectItem("Bimbrownik", "Bimbrownik"),
-    MultiSelectItem("Grabarz", "Grabarz"),
-    MultiSelectItem("Burmistrz", "Burmistrz"),
-  ];
+  List<String> roles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
+  List<IconData> roleIcons = [Icons.wine_bar, Icons.gavel, Icons.favorite, Icons.cases_outlined, Icons.church];
+  int pauseTime = 0;
+  List<String> selectedRoles = [];
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +58,51 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                       }
                       return null;
                     },
-                    labelText: 'Nick gracza',
+                    labelText: 'Nazwa gracza',
                     maxLength : 30,
-                  ),
-                  MultiSelectDialogField(
-                      items: _items,
-                    onConfirm: (results) {
-                      setState(() {
-                        _selectedItems = results.cast<String>();
-                      });
-                    },
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 30),
+            Multiselect(
+              itemText: roles,
+              // itemIcons: roleIcons,
+              backgroundColor: const Color.fromARGB(255, 33, 33, 33),
+              borderColor: const Color.fromARGB(255, 186, 86, 36),
+              labelText: 'Wybierz role',
+              labelTextStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              borderRadius: 30.0,
+              optionListBackgroundColor: const Color.fromARGB(255, 186, 86, 36),
+              initialValues: roles,
+              onValueChange: (values){
+                selectedRoles = values;
+              },
+            ),
+            SizedBox(height: 30),
+            const Text(
+              'Czas na podjęcie wyboru',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+            NumberPicker(
+              minValue: 1,
+              maxValue: 10,
+              initialValue: 2,
+              backgroundColor: Color.fromARGB(255, 33, 33, 33),
+              buttonColor: Color.fromARGB(255, 186, 86, 36),
+              borderColor: Color.fromARGB(255, 186, 86, 36),
+              borderRadius: 30.0,
+              textColor: Colors.white,
+              iconColor: Colors.white,
+              onValueChange: (newValue) {
+                pauseTime = newValue;
+              },
             ),
             SizedBox(height: 30),
             Row(

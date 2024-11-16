@@ -51,7 +51,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
                   }
                   return null;
                 },
-                labelText: 'Nick gracza',
+                labelText: 'Nazwa gracza',
                 maxLength : 30,
               ),
             ),

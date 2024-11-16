@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mafia/Screens/SplashScreen.dart';
-import 'Screens/MenuView.dart';
 import 'package:flutter/services.dart';
 
 void main() {
