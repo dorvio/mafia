@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/CustomTextFormField.dart';
-// import '../Widgets/CustomMultiselect.dart';
 import 'package:number_picker/number_picker.dart';
 import 'package:multiselect/multiselect.dart';
 
@@ -18,7 +16,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
   final _formKey = GlobalKey<FormState>();
   String playerName = '';
   List<String> roles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
-  List<IconData> roleIcons = [Icons.wine_bar, Icons.gavel, Icons.favorite, Icons.cases_outlined, Icons.church];
+  List<IconData> roleIcons = [Icons.sports_bar, Icons.person_search_rounded, Icons.healing, Icons.museum, Icons.church];
   int pauseTime = 0;
   List<String> selectedRoles = [];
 
@@ -67,7 +65,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
             const SizedBox(height: 30),
             Multiselect(
               itemText: roles,
-              // itemIcons: roleIcons,
+              itemIcons: roleIcons,
               backgroundColor: const Color.fromARGB(255, 33, 33, 33),
               borderColor: const Color.fromARGB(255, 186, 86, 36),
               labelText: 'Wybierz role',
