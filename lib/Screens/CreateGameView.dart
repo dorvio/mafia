@@ -23,7 +23,11 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+    child: Scaffold(
       backgroundColor: Colors.black,
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -58,6 +62,10 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                     },
                     labelText: 'Nazwa gracza',
                     maxLength : 30,
+                    maxLines: 1,
+                    onFieldSubmitted: (value) {
+                      FocusScope.of(context).unfocus();
+                    },
                   ),
                 ],
               ),
@@ -120,6 +128,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
           ],
         ),
       ),
+    ),
     );
   }
 }

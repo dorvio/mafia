@@ -20,7 +20,11 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+    child:  Scaffold(
       backgroundColor: Colors.black,
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -53,6 +57,10 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
                 },
                 labelText: 'Nazwa gracza',
                 maxLength : 30,
+                maxLines: 1,
+                onFieldSubmitted: (value) {
+                  FocusScope.of(context).unfocus();
+                },
               ),
             ),
             SizedBox(height: 30),
@@ -73,6 +81,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mafia/Screens/SplashScreen.dart';
+import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
 
 void main() {
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      home: const MenuView(),
     );
   }
 }

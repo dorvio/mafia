@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
   final FormFieldValidator<String>? validator;
   final Widget? prefixIcon;
   final String labelText;
@@ -12,6 +13,7 @@ class CustomTextFormField extends StatefulWidget {
   const CustomTextFormField({
     Key? key,
     this.onChanged,
+    this.onFieldSubmitted,
     this.validator,
     this.prefixIcon = null,
     this.labelText = 'Wpisz tutaj',
@@ -61,6 +63,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       validator: widget.validator ?? (text) {
         return null;
       },
+      onFieldSubmitted: widget.onFieldSubmitted,
     );
   }
 }
