@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:number_picker/number_picker.dart';
 import 'package:multiselect/multiselect.dart';
+import 'package:mafia/constants.dart';
 
 
 class CreateGameView extends StatefulWidget {
@@ -38,7 +39,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
               'Utwórz gre',
               style: GoogleFonts.creepster(
                 textStyle: const TextStyle(
-                  color: Color.fromARGB(255, 186, 86, 36),
+                  color: ORANGE,
                   fontSize: 50,
                   fontWeight: FontWeight.bold,
                 ),
@@ -75,14 +76,14 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
               itemText: roles,
               itemIcons: roleIcons,
               backgroundColor: const Color.fromARGB(255, 33, 33, 33),
-              borderColor: const Color.fromARGB(255, 186, 86, 36),
+              borderColor: ORANGE,
               labelText: 'Wybierz role',
               labelTextStyle: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
               ),
               borderRadius: 30.0,
-              optionListBackgroundColor: const Color.fromARGB(255, 186, 86, 36),
+              optionListBackgroundColor: ORANGE,
               initialValues: roles,
               onValueChange: (values){
                 selectedRoles = values;
@@ -101,8 +102,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
               maxValue: 10,
               initialValue: 2,
               backgroundColor: Color.fromARGB(255, 33, 33, 33),
-              buttonColor: Color.fromARGB(255, 186, 86, 36),
-              borderColor: Color.fromARGB(255, 186, 86, 36),
+              buttonColor: ORANGE,
+              borderColor: ORANGE,
               borderRadius: 30.0,
               textColor: Colors.white,
               iconColor: Colors.white,

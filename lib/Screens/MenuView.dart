@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/Screens/JoinGameView.dart';
 import 'package:mafia/Screens/CreateGameView.dart';
 import 'package:mafia/Screens/RulesView.dart';
+import 'package:mafia/constants.dart';
 
 class MenuView extends StatelessWidget {
   const MenuView({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class MenuView extends StatelessWidget {
               'MAFIA',
               style: GoogleFonts.creepster(
                 textStyle: const TextStyle(
-                  color: Color.fromARGB(255, 186, 86, 36),
+                  color: ORANGE,
                   fontWeight: FontWeight.bold,
                   fontSize: 70,
                   letterSpacing: 15,

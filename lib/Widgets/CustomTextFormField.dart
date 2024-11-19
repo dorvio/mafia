@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mafia/constants.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
@@ -40,21 +41,21 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         labelStyle: const TextStyle(color: Colors.white),
         counterStyle: const TextStyle(color: Colors.white),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color.fromARGB(255, 186, 86, 36), width: 3),
+          borderSide: const BorderSide(color: ORANGE, width: 3),
           borderRadius: BorderRadius.circular(30.0),
         ),
         filled: true,
         fillColor: Colors.grey[900],
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color.fromARGB(255, 186, 86, 36), width: 3),
+          borderSide: const BorderSide(color: ORANGE, width: 3),
           borderRadius: BorderRadius.circular(30.0),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: Colors.red, width: 3),
           borderRadius: BorderRadius.circular(30.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: Colors.red, width: 3),
           borderRadius: BorderRadius.circular(30.0),
         ),
         prefixIcon: widget.prefixIcon,

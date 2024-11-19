@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mafia/constants.dart';
 
 class RulesView extends StatelessWidget {
   const RulesView({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class RulesView extends StatelessWidget {
                 'ZASADY',
                 style: GoogleFonts.creepster(
                   textStyle: const TextStyle(
-                    color: Color.fromARGB(255, 186, 86, 36),
+                    color: ORANGE,
                     fontWeight: FontWeight.bold,
                     fontSize: 60,
                   ),

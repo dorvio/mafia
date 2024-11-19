@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
+import 'constants.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromARGB(255, 186, 86, 36),
+            backgroundColor: ORANGE,
             foregroundColor: Colors.black,
             shadowColor: Colors.yellow,
             elevation: 10,
