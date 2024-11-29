@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:mafia/constants.dart';
 
@@ -13,6 +14,8 @@ class JoinGameView extends StatefulWidget {
 class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String playerName = '';
+  SupabaseServices gameServices = SupabaseServices();
+  String gameCode = '';
 
   @override
   void initState() {
@@ -45,38 +48,71 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
             const SizedBox(height: 30),
             Form(
               key: _formKey,
-              child: CustomTextFormField(
-                initialValue: null,
-                onChanged: (text) {
-                  setState(() => playerName = text);
-                },
-                validator: (text) {
-                  if (text == null || text.isEmpty) {
-                    return 'Uzupełnij pole';
-                  }
-                  return null;
-                },
-                labelText: 'Nazwa gracza',
-                maxLength : 30,
-                maxLines: 1,
-                onFieldSubmitted: (value) {
-                  FocusScope.of(context).unfocus();
-                },
+              child: Column(
+                children: [
+                  CustomTextFormField(
+                    initialValue: null,
+                    onChanged: (text) {
+                      setState(() => playerName = text);
+                    },
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return 'Uzupełnij pole';
+                      }
+                      return null;
+                    },
+                    labelText: 'Nazwa gracza',
+                    maxLength : 30,
+                    maxLines: 1,
+                    onFieldSubmitted: (value) {
+                      FocusScope.of(context).unfocus();
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  CustomTextFormField(
+                    initialValue: null,
+                    labelText: "Kod gry",
+                    maxLength: 8,
+                    maxLines: 1,
+                    onFieldSubmitted: (value) {
+                      FocusScope.of(context).unfocus();
+                    },
+                    onChanged: (text) {
+                      setState(() => gameCode = text);
+                    },
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return 'Uzupełnij pole';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                    onPressed: () {
-                      if(_formKey.currentState!.validate()){
-
+                  onPressed:  () async {
+                    if(_formKey.currentState!.validate()) {
+                      int gameId = await gameServices.getGameIdByCode(gameCode);
+                      if (gameId != -1) {
+                        _showLobbyDialog(context);
+                        int playerId = await gameServices.createPlayer(playerName, gameId);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text(
+                              'Nie znaleziono gry dla podanego kodu.')),
+                        );
                       }
-                    },
-                    child: Text('Dołącz')),
+                    }
+                  },
+                  child: const Text('Dołącz')
+                ),
                 SizedBox(width: 30),
-                ElevatedButton(onPressed: () => goBack(context), child: Text('Cofnij ')),
+                ElevatedButton(onPressed: () => goBack(context), child: const Text('Cofnij ')),
               ],
             ),
           ],
@@ -89,4 +125,44 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
 
 void goBack(BuildContext context) {
   Navigator.pop(context);
+}
+
+void _showLobbyDialog(BuildContext context) async {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: Colors.grey[900],
+              title: const Text(
+                'Lobby',
+                style: const TextStyle(color: Colors.white),
+              ),
+              content: const Text(
+                "Oczekiwanie na rozpoczęcie gry przez gospodarza.",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: ORANGE,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  child: const Text('Cofnij'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+  );
 }

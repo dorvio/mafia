@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mafia/constants.dart';
 
 class CustomTextFormField extends StatefulWidget {
-  final ValueChanged<String>? onChanged;
+  final ValueChanged<String> onChanged;
   final ValueChanged<String>? onFieldSubmitted;
   final FormFieldValidator<String>? validator;
   final Widget? prefixIcon;
@@ -13,7 +13,7 @@ class CustomTextFormField extends StatefulWidget {
 
   const CustomTextFormField({
     Key? key,
-    this.onChanged,
+    required this.onChanged,
     this.onFieldSubmitted,
     this.validator,
     this.prefixIcon = null,
@@ -65,6 +65,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         return null;
       },
       onFieldSubmitted: widget.onFieldSubmitted,
+      onChanged: widget.onChanged,
     );
   }
 }

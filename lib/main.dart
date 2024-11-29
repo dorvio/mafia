@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants.dart';
 
-void main() {
-  runApp(const MyApp());
+const supabaseUrl = 'https://gpxewdudbpwmjufhkkyx.supabase.co';
+const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
