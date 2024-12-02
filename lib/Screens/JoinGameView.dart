@@ -4,6 +4,7 @@ import 'package:mafia/main.dart';
 import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:mafia/constants.dart';
+import 'GameVIew.dart';
 
 class JoinGameView extends StatefulWidget {
   const JoinGameView({Key? key}) : super(key: key);
@@ -18,10 +19,17 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
   SupabaseServices supabaseServices = SupabaseServices();
   String gameCode = '';
   int playerId = -1;
+  int gameId = -1;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    supabaseServices.unsubscribeFromGameStatus();
+    super.dispose();
   }
 
   @override
@@ -99,7 +107,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
                 ElevatedButton(
                   onPressed:  () async {
                     if(_formKey.currentState!.validate()) {
-                      int gameId = await supabaseServices.getGameIdByCode(gameCode);
+                      gameId = await supabaseServices.getGameIdByCode(gameCode.toUpperCase());
                       if (gameId != -1) {
                         _showLobbyDialog(context);
                         playerId = await supabaseServices.createPlayer(playerName, gameId);
@@ -125,6 +133,16 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
   }
 
   void _showLobbyDialog(BuildContext context) async {
+    supabaseServices.subscribeToGamesStatus(gameId, (newStatus) {
+      if (newStatus == 1) {
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => GameView()),
+        );
+      }
+    });
+
     showDialog(
       context: context,
       builder: (context) {
@@ -134,7 +152,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
               backgroundColor: Colors.grey[900],
               title: const Text(
                 'Lobby',
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white),
               ),
               content: const Text(
                 "Oczekiwanie na rozpoczęcie gry przez gospodarza.",
@@ -164,6 +182,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
       },
     );
   }
+
 }
 
 void goBack(BuildContext context) {

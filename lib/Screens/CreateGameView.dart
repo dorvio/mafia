@@ -25,14 +25,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
   List<String> selectedRoles = [];
   SupabaseServices supabaseServices = SupabaseServices();
   Game? game;
-  int playersCount = 0;
+  int playersCount = 1;
   late Stream<int> playerCountStream;
-
-  @override
-  void dispose() {
-    supabaseServices.unsubscribeFromPlayerChanges();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +201,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                   ),
                   child: const Text('Rozpocznij'),
                   onPressed: () async {
-                    if (playersCount + 1 >= 3) {
+                    if (playersCount >= 2) {
+                      //TODO change min player number
                       bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
                       startGame(context);
                     } else {
@@ -226,6 +221,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                   ),
                   child: const Text('Cofnij'),
                   onPressed: () async {
+                    supabaseServices.unsubscribeFromPlayerChanges();
+                    supabaseServices.unsubscriveAllChanels();
                     await supabaseServices.deleteGame(game!.gameId);
                     Navigator.pop(context);
                   },

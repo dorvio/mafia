@@ -7,7 +7,8 @@ import '../Classes/Player.dart';
 
 class SupabaseServices {
   final SupabaseClient supabase = Supabase.instance.client;
-  late RealtimeChannel channel;
+  late RealtimeChannel playerChannel;
+  late RealtimeChannel gameChannel;
   int playersCount = 0;
 
   Future<Game?> createGame() async {
@@ -59,6 +60,32 @@ class SupabaseServices {
     }
   }
 
+  void subscribeToGamesStatus(int gameId, Function(int newStatus) onGameStatusChanged) {
+    gameChannel = supabase.channel('game-status-$gameId');
+
+    gameChannel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'games',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: gameId,
+      ),
+      callback: (PostgresChangePayload payload) {
+        final newStatus = payload.newRecord?['status'] as int? ?? 0;
+        print("Game status updated: $newStatus for game $gameId");
+        onGameStatusChanged(newStatus);
+      },
+    );
+    gameChannel.subscribe();
+  }
+
+
+  void unsubscribeFromGameStatus() {
+    supabase.removeChannel(gameChannel);
+  }
+
   Future<int> createPlayer(String _playerName, int _gameId) async {
     try {
       final response = await supabase.from('players').insert({
@@ -81,17 +108,25 @@ class SupabaseServices {
     }
   }
 
-  Stream<int> getPlayerCountStream(int gameId) {
-    return supabase
-        .from('players:game_id=eq.$gameId')
-        .stream(primaryKey: ['id'])
-        .map((players) => players.length);
+  Future<int> getNumberOfPlayerForGame(int gameId) async {
+    try{
+      final response = await supabase
+          .from('players')
+          .select('id')
+          .eq('game_id', gameId)
+          .count();
+      return response.count;
+    }catch (e) {
+      print("Error deleting from 'players': $e");
+      return -1;
+    }
   }
 
-  void subscribeToPlayerChanges(int gameId, Function(int playerCount) onPlayerCountChanged) {
-    channel = supabase.channel('game-lobby-$gameId');
+  void subscribeToPlayerChanges(int gameId, Function(int playerCount) onPlayerCountChanged) async {
+    playerChannel = supabase.channel('game-lobby-$gameId');
 
-    channel.onPostgresChanges(
+    playerChannel
+    .onPostgresChanges(
       event: PostgresChangeEvent.insert,
       schema: 'public',
       table: 'players',
@@ -102,30 +137,35 @@ class SupabaseServices {
       ),
       callback: (PostgresChangePayload payload) {
         print("Player added: ${payload.newRecord}");
-        onPlayerCountChanged(playersCount + 1);
+        playersCount++;
+        onPlayerCountChanged(playersCount);
       },
-    );
-
-    channel.onPostgresChanges(
+    )
+    .onPostgresChanges(
       event: PostgresChangeEvent.delete,
       schema: 'public',
       table: 'players',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'game_id',
-        value: gameId,
-      ),
-      callback: (PostgresChangePayload payload) {
-        print("Player removed: ${payload.oldRecord}");
-        onPlayerCountChanged(playersCount - 1);
+      callback: (PostgresChangePayload payload) async {
+        print("Player removed");
+        int num = await getNumberOfPlayerForGame(gameId);
+        if(num == -1){
+          print("Cos poszlo nie tak");
+        } else {
+          playersCount = num;
+        }
+        onPlayerCountChanged(playersCount);
       },
     );
 
-    channel.subscribe();
+    playerChannel.subscribe();
   }
 
   void unsubscribeFromPlayerChanges() {
-    supabase.removeChannel(channel);
+    supabase.removeChannel(playerChannel);
+  }
+
+  void unsubscriveAllChanels() {
+    supabase.removeAllChannels();
   }
 
   String generateGameCode() {
