@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mafia/Screens/GameVIew.dart';
 import 'package:mafia/Services/SupabaseServices.dart';
 import '../Classes/Game.dart';
 import '../Widgets/CustomTextFormField.dart';
@@ -129,12 +130,6 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                           game = await supabaseServices.createGame();
                           if (game != null) {
                             int playerId = await supabaseServices.createPlayer(playerName, game!.gameId);
-                            supabaseServices.subscribeToPlayerChanges(game!.gameId, (int playerCount) {
-                              setState(() {
-                                playersCount = playerCount;
-                              });
-                            });
-                            playerCountStream = supabaseServices.getPlayerCountStream(game!.gameId);
                             _showLobbyDialog();
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -159,32 +154,48 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
     );
   }
 
-  void _showLobbyDialog() async {
+  void _showLobbyDialog() {
+    bool notMinPlayer = false;
+
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            supabaseServices.subscribeToPlayerChanges(game!.gameId, (newCount) {
+              setState(() {
+                playersCount = newCount;
+              });
+            });
+
             return AlertDialog(
               backgroundColor: Colors.grey[900],
               title: const Text(
                 'Lobby',
                 style: TextStyle(color: Colors.white),
               ),
-              content: StreamBuilder<int>(
-                stream: playerCountStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  }
-                  return Text(
-                    "Kod gry: ${game!.gameCode}\nLiczba graczy w lobby: ${snapshot.data}",
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Kod gry: ${game!.gameCode}\n"
+                        "Liczba graczy w lobby: $playersCount",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 10),
+                  if (notMinPlayer)
+                    const Text(
+                      "Do gry potrzeba conajmniej 3 graczy.",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                ],
               ),
               actions: [
                 TextButton(
@@ -195,7 +206,15 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                     ),
                   ),
                   child: const Text('Rozpocznij'),
-                  onPressed: () {
+                  onPressed: () async {
+                    if (playersCount + 1 >= 3) {
+                      bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
+                      startGame(context);
+                    } else {
+                      setState(() {
+                        notMinPlayer = true;
+                      });
+                    }
                   },
                 ),
                 TextButton(
@@ -206,7 +225,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                     ),
                   ),
                   child: const Text('Cofnij'),
-                  onPressed: () {
+                  onPressed: () async {
+                    await supabaseServices.deleteGame(game!.gameId);
                     Navigator.pop(context);
                   },
                 ),
@@ -217,11 +237,19 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
       },
     );
   }
-
 }
-
 
 void goBack(BuildContext context) {
   Navigator.pop(context);
+}
+
+void startGame(BuildContext context){
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(builder: (context) => GameView()),
+        (Route<dynamic> route) => false,
+  );
+
+
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mafia/main.dart';
 import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:mafia/constants.dart';
@@ -14,8 +15,9 @@ class JoinGameView extends StatefulWidget {
 class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String playerName = '';
-  SupabaseServices gameServices = SupabaseServices();
+  SupabaseServices supabaseServices = SupabaseServices();
   String gameCode = '';
+  int playerId = -1;
 
   @override
   void initState() {
@@ -97,10 +99,10 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
                 ElevatedButton(
                   onPressed:  () async {
                     if(_formKey.currentState!.validate()) {
-                      int gameId = await gameServices.getGameIdByCode(gameCode);
+                      int gameId = await supabaseServices.getGameIdByCode(gameCode);
                       if (gameId != -1) {
                         _showLobbyDialog(context);
-                        int playerId = await gameServices.createPlayer(playerName, gameId);
+                        playerId = await supabaseServices.createPlayer(playerName, gameId);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text(
@@ -121,14 +123,9 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
     ),
     );
   }
-}
 
-void goBack(BuildContext context) {
-  Navigator.pop(context);
-}
-
-void _showLobbyDialog(BuildContext context) async {
-  showDialog(
+  void _showLobbyDialog(BuildContext context) async {
+    showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -156,6 +153,7 @@ void _showLobbyDialog(BuildContext context) async {
                   ),
                   child: const Text('Cofnij'),
                   onPressed: () {
+                    supabaseServices.deletePlayer(playerId);
                     Navigator.pop(context);
                   },
                 ),
@@ -164,5 +162,11 @@ void _showLobbyDialog(BuildContext context) async {
           },
         );
       },
-  );
+    );
+  }
 }
+
+void goBack(BuildContext context) {
+  Navigator.pop(context);
+}
+

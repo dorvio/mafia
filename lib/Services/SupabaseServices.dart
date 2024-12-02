@@ -23,6 +23,15 @@ class SupabaseServices {
     }
   }
 
+  Future <void> deleteGame(gameId) async {
+    try {
+      final response = await supabase.from('games').delete()
+      .eq('id', gameId);
+    } catch (e) {
+      print("Error deleting from 'games': $e");
+    }
+  }
+
   Future<int> getGameIdByCode(String _gameCode) async {
     try {
       final data = await supabase
@@ -37,6 +46,18 @@ class SupabaseServices {
       return -1;
     }
   }
+  
+  Future <bool> updateGameStatus(int gameId, int gameStatus) async {
+    try {
+      final response = await supabase.from('games')
+          .update({'status': gameStatus})
+          .eq('id', gameId);
+      return true;
+    } catch (e) {
+      print("Error finding game by code': $e");
+      return false;
+    }
+  }
 
   Future<int> createPlayer(String _playerName, int _gameId) async {
     try {
@@ -48,6 +69,15 @@ class SupabaseServices {
     } catch (e) {
       print("Error inserting into 'games': $e");
       return -1;
+    }
+  }
+
+  Future <void> deletePlayer(playerId) async {
+    try{
+      final response = await supabase.from('players').delete()
+          .eq('id', playerId);
+    }catch (e) {
+      print("Error deleting from 'players': $e");
     }
   }
 
