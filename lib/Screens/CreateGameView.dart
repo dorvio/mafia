@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mafia/Screens/GameVIew.dart';
+import 'package:mafia/Screens/GameView.dart';
 import 'package:mafia/Services/SupabaseServices.dart';
 import '../Classes/Game.dart';
 import '../Widgets/CustomTextFormField.dart';
@@ -35,6 +35,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        resizeToAvoidBottomInset : false,
         backgroundColor: Colors.black,
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20),

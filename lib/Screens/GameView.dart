@@ -13,8 +13,12 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-
+    return const Scaffold(
+      body: Center(
+        child: Text(
+          "Witaj w grze!",
+        ),
+      ),
     );
   }
 }

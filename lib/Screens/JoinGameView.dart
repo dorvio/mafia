@@ -4,7 +4,7 @@ import 'package:mafia/main.dart';
 import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:mafia/constants.dart';
-import 'GameVIew.dart';
+import 'GameView.dart';
 
 class JoinGameView extends StatefulWidget {
   const JoinGameView({Key? key}) : super(key: key);
@@ -39,6 +39,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
         FocusScope.of(context).unfocus();
       },
     child:  Scaffold(
+      resizeToAvoidBottomInset : false,
       backgroundColor: Colors.black,
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),

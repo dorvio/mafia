@@ -9,7 +9,7 @@ class SupabaseServices {
   final SupabaseClient supabase = Supabase.instance.client;
   late RealtimeChannel playerChannel;
   late RealtimeChannel gameChannel;
-  int playersCount = 0;
+  int playersCount = 1;
 
   Future<Game?> createGame() async {
     try {

@@ -3,12 +3,14 @@ import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 const supabaseUrl = 'https://gpxewdudbpwmjufhkkyx.supabase.co';
 const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  WakelockPlus.enable();
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
   runApp(MyApp());
