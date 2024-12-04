@@ -110,8 +110,8 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
                     if(_formKey.currentState!.validate()) {
                       gameId = await supabaseServices.getGameIdByCode(gameCode.toUpperCase());
                       if (gameId != -1) {
-                        _showLobbyDialog(context);
                         playerId = await supabaseServices.createPlayer(playerName, gameId);
+                        _showLobbyDialog(context, playerId);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text(
@@ -133,13 +133,13 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
     );
   }
 
-  void _showLobbyDialog(BuildContext context) async {
+  void _showLobbyDialog(BuildContext context, int playerId) async {
     supabaseServices.subscribeToGamesStatus(gameId, (newStatus) {
       if (newStatus == 1) {
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => GameView()),
+          MaterialPageRoute(builder: (context) => GameView(playerId: playerId)),
         );
       }
     });

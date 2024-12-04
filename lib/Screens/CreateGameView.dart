@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/Screens/GameView.dart';
 import 'package:mafia/Services/SupabaseServices.dart';
 import '../Classes/Game.dart';
+import '../Classes/Player.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:number_picker/number_picker.dart';
 import 'package:multiselect/multiselect.dart';
@@ -19,6 +20,7 @@ class CreateGameView extends StatefulWidget {
 class _CreateGameViewState extends State<CreateGameView> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String playerName = '';
+  int playerId = -1;
   List<String> roles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
   List<IconData> roleIcons = [Icons.sports_bar, Icons.person_search_rounded, Icons.healing, Icons.museum, Icons.church];
   int pauseTime = 0;
@@ -124,7 +126,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                         if (game == null) {
                           game = await supabaseServices.createGame();
                           if (game != null) {
-                            int playerId = await supabaseServices.createPlayer(playerName, game!.gameId);
+                            playerId = await supabaseServices.createPlayer(playerName, game!.gameId);
                             _showLobbyDialog();
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -202,10 +204,11 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                   ),
                   child: const Text('Rozpocznij'),
                   onPressed: () async {
-                    if (playersCount >= 2) {
-                      //TODO change min player number
+                    if (playersCount >= 3) {
                       bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
-                      startGame(context);
+                      List<int> rolesId = getRolesId();
+                      await supabaseServices.assignRoles(rolesId, game!.gameId);
+                      startGame(context, playerId);
                     } else {
                       setState(() {
                         notMinPlayer = true;
@@ -235,19 +238,36 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
       },
     );
   }
+
+  List<int> getRolesId() {
+    List<int> list = [1, 2, 3, 4, 5];
+    Map<String, int> roleMapping = {
+      "Obrońca": 1,
+      "Prokurator": 2,
+      "Bimbrownik": 3,
+      "Grabarz": 4,
+      "Burmistrz": 5,
+    };
+
+    List<int> selectedRolesIds = selectedRoles.map((role) => roleMapping[role]!).toList();
+
+    list.removeWhere((id) => selectedRolesIds.contains(id));
+
+    return list;
+  }
+
 }
 
 void goBack(BuildContext context) {
   Navigator.pop(context);
 }
 
-void startGame(BuildContext context){
+void startGame(BuildContext context, int playerId){
   Navigator.pushAndRemoveUntil(
     context,
-    MaterialPageRoute(builder: (context) => GameView()),
+    MaterialPageRoute(builder: (context) => GameView(playerId: playerId)),
         (Route<dynamic> route) => false,
   );
-
 
 }
 

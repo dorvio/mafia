@@ -33,12 +33,12 @@ class SupabaseServices {
     }
   }
 
-  Future<int> getGameIdByCode(String _gameCode) async {
+  Future<int> getGameIdByCode(String gameCode) async {
     try {
       final data = await supabase
           .from('games')
           .select()
-          .eq('game_code', _gameCode)
+          .eq('game_code', gameCode)
           .eq('status', 0)
           .single();
       return data['id'] as int;
@@ -55,7 +55,7 @@ class SupabaseServices {
           .eq('id', gameId);
       return true;
     } catch (e) {
-      print("Error finding game by code': $e");
+      print("Error updating game status': $e");
       return false;
     }
   }
@@ -164,6 +164,41 @@ class SupabaseServices {
     supabase.removeChannel(playerChannel);
   }
 
+  Future<Player?> getPlayerDataById(int playerId) async {
+    try{
+      final response = await supabase.from('players').select()
+          .eq('id', playerId)
+          .single();
+      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead']);
+      return player;
+    }catch (e) {
+      print("Error fetching player with id $playerId: $e");
+      return null;
+    }
+  }
+
+  Future<List<int>> getPlayersIdsForGame(int gameId) async {
+    final response = await supabase
+        .from('players')
+        .select('id')
+        .eq('game_id', gameId);
+
+    return (response as List)
+        .map<int>((player) => player['id'] as int)
+        .toList();
+  }
+
+  Future<void> updatePlayerRole(int playerId, int role) async {
+    try{
+      final response = await supabase
+          .from('players')
+          .update({'player_role': role})
+          .eq('id', playerId);
+    } catch(e){
+      print("Error updating player role: $e");
+    }
+  }
+
   void unsubscriveAllChanels() {
     supabase.removeAllChannels();
   }
@@ -173,6 +208,47 @@ class SupabaseServices {
     final Random random = Random();
 
     return List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  Future<void> assignRoles(List<int> availableRoles, int gameId) async {
+    int mafiaCount;
+    int notMafiaPlayers;
+    int notMafiaRoles;
+    int villagers;
+    List<int> rolesToAssign = [];
+    List<int> playersIds = [];
+
+    if(playersCount < 5){
+      mafiaCount = 1;
+    } else if(playersCount < 8) {
+      mafiaCount = 2;
+    } else {
+      mafiaCount = 3;
+    }
+    for(int i = 0; i < mafiaCount; ++i){
+      rolesToAssign.add(6);
+    }
+    notMafiaPlayers = playersCount - mafiaCount;
+    if(availableRoles.length >= notMafiaPlayers){
+      notMafiaRoles = notMafiaPlayers;
+      villagers = 0;
+    }else{
+      notMafiaRoles = availableRoles.length;
+      villagers = notMafiaPlayers - notMafiaRoles;
+    }
+    for(int i = 0; i < notMafiaRoles; ++i){
+      rolesToAssign.add(availableRoles[i]);
+    }
+    for(int i=0; i < villagers; ++i){
+      rolesToAssign.add(7);
+    }
+    rolesToAssign.shuffle();
+
+    playersIds = await getPlayersIdsForGame(gameId);
+
+    for(int i = 0; i < playersCount; ++i){
+      await updatePlayerRole(playersIds[i], rolesToAssign[i]);
+    }
   }
 
 
