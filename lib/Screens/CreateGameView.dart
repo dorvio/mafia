@@ -205,9 +205,9 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                   child: const Text('Rozpocznij'),
                   onPressed: () async {
                     if (playersCount >= 3) {
-                      bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
                       List<int> rolesId = getRolesId();
                       await supabaseServices.assignRoles(rolesId, game!.gameId);
+                      bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
                       startGame(context, playerId);
                     } else {
                       setState(() {

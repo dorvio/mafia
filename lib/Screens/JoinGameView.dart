@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/main.dart';
+import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:mafia/constants.dart';
@@ -134,8 +135,12 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
   }
 
   void _showLobbyDialog(BuildContext context, int playerId) async {
-    supabaseServices.subscribeToGamesStatus(gameId, (newStatus) {
+    supabaseServices.subscribeToGamesStatus(gameId, (newStatus) async {
       if (newStatus == 1) {
+        Player? player;
+        while (player == null){
+          player = await supabaseServices.getPlayerDataById(playerId);
+        }
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
