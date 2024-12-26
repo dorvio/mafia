@@ -144,7 +144,7 @@ class _JoinGameViewState extends State<JoinGameView> with SingleTickerProviderSt
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => GameView(playerId: playerId)),
+          MaterialPageRoute(builder: (context) => GameView(playerId: playerId, isHost: false)),
         );
       }
     });

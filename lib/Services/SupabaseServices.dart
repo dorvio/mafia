@@ -16,7 +16,7 @@ class SupabaseServices {
       final response = await supabase.from('games').insert({
         'game_code': generateGameCode(),
       }).select().single();
-      Game game = new Game(gameId: response['id'], gameCode: response['game_code'], status: response['status'], createdAt: response['created_at']);
+      Game game = new Game(gameId: response['id'], gameCode: response['game_code'], status: response['status'], createdAt: response['created_at'], votingTime: response['voting_time']);
       return game;
     } catch (e) {
       print("Error inserting into 'games': $e");
@@ -44,6 +44,20 @@ class SupabaseServices {
       return data['id'] as int;
     } catch (e) {
       print("Error finding game by code': $e");
+      return -1;
+    }
+  }
+
+  Future<int> getGameVotingTimeById(int gameId) async {
+    try {
+      final data = await supabase
+          .from('games')
+          .select()
+          .eq('id', gameId)
+          .single();
+      return data['voting_time'] as int;
+    } catch (e) {
+      print("Error finding game by id': $e");
       return -1;
     }
   }
@@ -169,7 +183,7 @@ class SupabaseServices {
       final response = await supabase.from('players').select()
           .eq('id', playerId)
           .single();
-      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead']);
+      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead'], gameId: response['game_id']);
       return player;
     }catch (e) {
       print("Error fetching player with id $playerId: $e");

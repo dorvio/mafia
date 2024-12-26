@@ -3,11 +3,13 @@ class Player {
   String playerName;
   int playerRole;
   bool isDead;
+  int gameId;
 
   Player({
     required this.playerId,
     required this.playerName,
     required this.playerRole,
+    required this.gameId,
     this.isDead = false
   });
 
@@ -16,12 +18,14 @@ class Player {
     String? playerName,
     int? playerRole,
     bool? isDead,
+    int? gameId,
   }) {
     return Player(
       playerId : playerId ?? this.playerId,
       playerName : playerName ?? this.playerName,
       playerRole : playerRole ?? this.playerRole,
       isDead : isDead ?? this.isDead,
+      gameId : gameId ?? this.gameId,
     );
   }
 
@@ -46,5 +50,9 @@ class Player {
   }
   bool getIsDead() {
     return isDead;
+  }
+
+  int getGameId(){
+    return gameId;
   }
 }

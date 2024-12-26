@@ -265,7 +265,7 @@ void goBack(BuildContext context) {
 void startGame(BuildContext context, int playerId){
   Navigator.pushAndRemoveUntil(
     context,
-    MaterialPageRoute(builder: (context) => GameView(playerId: playerId)),
+    MaterialPageRoute(builder: (context) => GameView(playerId: playerId, isHost: true)),
         (Route<dynamic> route) => false,
   );
 

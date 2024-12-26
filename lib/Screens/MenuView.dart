@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mafia/Screens/GameView.dart';
 import 'package:mafia/Screens/JoinGameView.dart';
 import 'package:mafia/Screens/CreateGameView.dart';
 import 'package:mafia/Screens/RulesView.dart';
@@ -48,9 +49,11 @@ class MenuView extends StatelessWidget {
 }
 
 void goToRulesView(BuildContext context) {
+  //TODO change to rules view
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => RulesView()),
+    // MaterialPageRoute(builder: (context) => RulesView()),
+    MaterialPageRoute(builder: (context) => GameView(playerId: 27, isHost: true)),
   );
 }
 
