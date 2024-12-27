@@ -208,7 +208,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                       List<int> rolesId = getRolesId();
                       await supabaseServices.assignRoles(rolesId, game!.gameId);
                       bool statusUpdated = await supabaseServices.updateGameStatus(game!.gameId, 1);
-                      startGame(context, playerId);
+                      startGame(context, playerId, game!.gameId);
                     } else {
                       setState(() {
                         notMinPlayer = true;
@@ -262,10 +262,10 @@ void goBack(BuildContext context) {
   Navigator.pop(context);
 }
 
-void startGame(BuildContext context, int playerId){
+void startGame(BuildContext context, int playerId, int gameId){
   Navigator.pushAndRemoveUntil(
     context,
-    MaterialPageRoute(builder: (context) => GameView(playerId: playerId, isHost: true)),
+    MaterialPageRoute(builder: (context) => GameView(playerId: playerId, isHost: true, gameId: gameId)),
         (Route<dynamic> route) => false,
   );
 

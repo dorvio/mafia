@@ -8,8 +8,9 @@ import '../Classes/Player.dart';
 class SupabaseServices {
   final SupabaseClient supabase = Supabase.instance.client;
   late RealtimeChannel playerChannel;
-  late RealtimeChannel gameChannel;
+  late RealtimeChannel gameplayChannel;
   int playersCount = 1;
+  bool voting = false;
 
   Future<Game?> createGame() async {
     try {
@@ -75,9 +76,9 @@ class SupabaseServices {
   }
 
   void subscribeToGamesStatus(int gameId, Function(int newStatus) onGameStatusChanged) {
-    gameChannel = supabase.channel('game-status-$gameId');
+    gameplayChannel = supabase.channel('game-status-$gameId');
 
-    gameChannel.onPostgresChanges(
+    gameplayChannel.onPostgresChanges(
       event: PostgresChangeEvent.update,
       schema: 'public',
       table: 'games',
@@ -92,12 +93,12 @@ class SupabaseServices {
         onGameStatusChanged(newStatus);
       },
     );
-    gameChannel.subscribe();
+    gameplayChannel.subscribe();
   }
 
 
   void unsubscribeFromGameStatus() {
-    supabase.removeChannel(gameChannel);
+    supabase.removeChannel(gameplayChannel);
   }
 
   Future<int> createPlayer(String _playerName, int _gameId) async {
@@ -183,11 +184,34 @@ class SupabaseServices {
       final response = await supabase.from('players').select()
           .eq('id', playerId)
           .single();
-      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead'], gameId: response['game_id']);
+      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead']);
       return player;
     }catch (e) {
       print("Error fetching player with id $playerId: $e");
       return null;
+    }
+  }
+
+  Future<List<Player>> getAllPlayerData(int gameId) async {
+    try {
+      final response = await supabase
+          .from('players')
+          .select()
+          .eq('game_id', gameId);
+
+      List<Player> players = List<Player>.from(
+        response.map((playerData) => Player(
+          playerId: playerData['id'],
+          playerName: playerData['player_name'],
+          playerRole: playerData['player_role'],
+          isDead: playerData['is_dead'],
+        )),
+      );
+
+      return players;
+    } catch (e) {
+      print("Error fetching players with game id $gameId: $e");
+      return [];
     }
   }
 
@@ -265,5 +289,36 @@ class SupabaseServices {
     }
   }
 
+  void subscribeToGameplay(int gameId, Function(bool started) onVotingStarted) {
+    gameplayChannel = supabase.channel('gameplay-voting-$gameId');
+
+    gameplayChannel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'gameplay',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: gameId,
+      ),
+      callback: (PostgresChangePayload payload) {
+        final started = payload.newRecord?['voting'] as bool? ?? false;
+        print("Gameplay voting changed: $started for game $gameId");
+        onVotingStarted(started);
+      },
+    );
+    gameplayChannel.subscribe();
+  }
+
+  void updateVotingInGameplay(int gameId) async {
+    voting = !voting;
+    try {
+      final response = await supabase.from('gameplay')
+          .update({'voting': voting})
+          .eq('id', gameId);
+    } catch (e) {
+      print("Error updating gameplay voting': $e");
+    }
+  }
 
 }

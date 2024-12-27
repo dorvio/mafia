@@ -1,3 +1,4 @@
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +40,15 @@ class MyApp extends StatelessWidget {
             textStyle: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+            ),
+          ).copyWith(
+            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                  (states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return ORANGE.brighten(0.25);
+                }
+                return ORANGE;
+              },
             ),
           ),
         ),

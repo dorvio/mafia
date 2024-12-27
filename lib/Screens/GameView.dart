@@ -4,16 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/constants.dart';
 
 import '../Classes/Player.dart';
+import '../Classes/PlayerList.dart';
 import '../Services/SupabaseServices.dart';
 
 class GameView extends StatefulWidget {
   final int playerId;
+  final int gameId;
   final bool isHost;
 
   const GameView({
     Key? key,
     required this.playerId,
     required this.isHost,
+    required this.gameId,
   }) : super(key: key);
 
   @override
@@ -23,10 +26,13 @@ class GameView extends StatefulWidget {
 class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin {
   SupabaseServices supabaseServices = SupabaseServices();
   Player? player;
+  late PlayerList allPlayers;
   bool isLoading = true;
   int votingTime = 2;
   CountDownController _controller = CountDownController();
-  bool showVoting = false;
+  bool votingStart = false;
+  bool votingEnd = false;
+  bool dayNightSwitch = true;
 
   @override
   void initState() {
@@ -35,14 +41,14 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   }
 
   Future<void> _loadPlayerData() async {
-    Player? fetchedPlayer = await supabaseServices.getPlayerDataById(widget.playerId);
-    int time = await supabaseServices.getGameVotingTimeById(fetchedPlayer!.getGameId());
+    List<Player> fetchedPlayers = await supabaseServices.getAllPlayerData(widget.gameId);
+    int time = await supabaseServices.getGameVotingTimeById(widget.gameId);
     setState(() {
-      player = fetchedPlayer;
+      allPlayers = PlayerList(players: fetchedPlayers);
+      player = allPlayers.getPlayerById(widget.playerId);
       isLoading = false;
       votingTime = time;
     });
-
   }
 
   @override
@@ -55,6 +61,13 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
         ),
       );
     }
+    supabaseServices.subscribeToGameplay(widget.gameId, (started) async {
+      if(started && dayNightSwitch){
+        startNightVoting();
+      } else if (started && !dayNightSwitch){
+        startDayVoting();
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -64,17 +77,40 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Center(
-              child:
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Text(
                   "${player!.getPlayerRole()?.toUpperCase()}",
-                  style: GoogleFonts.shadowsIntoLight (
+                  style: GoogleFonts.shadowsIntoLight(
                     textStyle: const TextStyle(
-                    fontSize: 50,
-                    color: ORANGE,
-                    fontWeight: FontWeight.bold
+                      fontSize: 50,
+                      color: ORANGE,
+                      fontWeight: FontWeight.bold,
                     ),
-                  )
+                  ),
+                ),
+                Visibility(
+                  visible: player!.getPlayerRoleId() == 6,
+                    child: Text(
+                      allPlayers.getMafiaNames(widget.playerId),
+                      style: const TextStyle(
+                        color: ORANGE,
+                        fontSize: 20,
+                      )
+                    ),
+                ),
+              ],
+            ),
+            Visibility(
+              visible: votingEnd,
+                child: const Text(
+                  "Koniec głosowania.\n"
+                      "Czas na dyskusję.",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: ORANGE,
+                  ),
                 ),
             ),
             Row(
@@ -82,12 +118,22 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
               children: [
                 Visibility(
                   visible: widget.isHost,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      startNightVoting();
+                  child:  dayNightSwitch ? ElevatedButton(
+                    onPressed: votingStart ? null : () {
+                      supabaseServices.updateVotingInGameplay(widget.gameId);
+                      // startNightVoting();
                     },
-                    child: Text(
+                    child: const Text(
                       "Miasto idzie spać",
+                    ),
+                  )
+                      : ElevatedButton(
+                    onPressed: votingStart ? null : () {
+                      supabaseServices.updateVotingInGameplay(widget.gameId);
+                      // startDayVoting();
+                    },
+                    child: const Text(
+                      "Głosowanie",
                     ),
                   ),
                 ),
@@ -101,14 +147,16 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                   autoStart: false,
                   fillColor: ORANGE,
                   ringColor: ORANGE,
-                  textStyle: TextStyle(
+                  textStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: ORANGE,
                   ),
                   timeFormatterFunction: (defaultFormatterFunction, duration) {
-                    return "${duration.inMinutes} : ${duration.inSeconds % 60}";
+                    return "${duration.inMinutes.toStringAsFixed(0).padLeft(2,'0')}"
+                        " : ${(duration.inSeconds % 60).toStringAsFixed(0).padLeft(2,'0')}";
                   },
+                  onComplete: onVotingEnd,
                 ),
               ],
             ),
@@ -121,8 +169,25 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   void startNightVoting(){
     _controller.start();
     setState(() {
-      showVoting = true;
+      votingStart = true;
     });
+  }
+  void startDayVoting(){
+    _controller.start();
+    setState(() {
+      votingStart = true;
+    });
+  }
+
+  void onVotingEnd(){
+    setState(() {
+      votingStart = false;
+      votingEnd = true;
+      dayNightSwitch = !dayNightSwitch;
+    });
+    if(widget.isHost){
+      supabaseServices.updateVotingInGameplay(widget.gameId);
+    }
   }
 
   //TODO dodać listiner jakies coś na bazie na start rundy startowanie głosowania/odliczania z listenera i ogólnie gre + ew animacje
