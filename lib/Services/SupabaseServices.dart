@@ -8,6 +8,7 @@ import '../Classes/Player.dart';
 class SupabaseServices {
   final SupabaseClient supabase = Supabase.instance.client;
   late RealtimeChannel playerChannel;
+  late RealtimeChannel gameChannel;
   late RealtimeChannel gameplayChannel;
   int playersCount = 1;
   bool voting = false;
@@ -76,9 +77,9 @@ class SupabaseServices {
   }
 
   void subscribeToGamesStatus(int gameId, Function(int newStatus) onGameStatusChanged) {
-    gameplayChannel = supabase.channel('game-status-$gameId');
+    gameChannel = supabase.channel('game-status-$gameId');
 
-    gameplayChannel.onPostgresChanges(
+    gameChannel.onPostgresChanges(
       event: PostgresChangeEvent.update,
       schema: 'public',
       table: 'games',
@@ -93,7 +94,7 @@ class SupabaseServices {
         onGameStatusChanged(newStatus);
       },
     );
-    gameplayChannel.subscribe();
+    gameChannel.subscribe();
   }
 
 
@@ -308,6 +309,47 @@ class SupabaseServices {
       },
     );
     gameplayChannel.subscribe();
+  }
+
+  void unsubscribeToGameplay(){
+    supabase.removeChannel(gameplayChannel);
+  }
+
+  void subscribeToPlayerVoteMafia(int gameId, Function(int vote) onVoteChanged) {
+    playerChannel = supabase.channel('player-vote-$gameId');
+
+    playerChannel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'players',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'game_id',
+        value: gameId,
+      ),
+      callback: (PostgresChangePayload payload) {
+        final newRecord = payload.newRecord;
+        if(newRecord['player_role'] == 6){
+          int vote = newRecord['vote'];
+          onVoteChanged(vote);
+        }
+      },
+    );
+    playerChannel.subscribe();
+  }
+
+  void unsubscribeToPlayerVoteMafia(){
+    supabase.removeChannel(playerChannel);
+  }
+
+  void updatePlayerVote(int playerId, int vote) async {
+    try {
+      final response = await supabase.from('players')
+          .update({'vote': vote})
+          .eq('id', playerId);
+    } catch (e) {
+      print("Error updating player vote': $e");
+    }
   }
 
   void updateVotingInGameplay(int gameId) async {

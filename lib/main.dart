@@ -14,7 +14,11 @@ Future<void> main() async {
   WakelockPlus.enable();
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
-  runApp(MyApp());
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {

@@ -34,6 +34,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   bool votingStart = false;
   bool votingEnd = false;
   bool dayNightSwitch = true;
+  int myVote = -1;
 
   Player? choice;
 
@@ -106,7 +107,18 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
               ),
             ),
             Expanded(
-                child: votingStart ? PlayerListWidget(players: allPlayers, playerRoleId: player!.getPlayerRoleId()) : SizedBox(),
+                child: votingStart ?
+                PlayerListWidget(
+                    players: allPlayers,
+                    playerRoleId: player!.getPlayerRoleId(),
+                    gameId: widget.gameId,
+                  onVoteChange: (int vote){
+                      setState(() {
+                        myVote = vote;
+                      });
+                  },
+                )
+                    : SizedBox(),
               //TODO obudować widgety we wrapper, który zwraca odpowiedni widget
             ),
             Padding(
@@ -144,7 +156,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                     isReverseAnimation: true,
                     autoStart: false,
                     fillColor: ORANGE,
-                    ringColor: ORANGE,
+                    ringColor: Colors.white12,
                     textStyle: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -184,6 +196,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
       votingEnd = true;
       dayNightSwitch = !dayNightSwitch;
     });
+    supabaseServices.updatePlayerVote(widget.playerId, myVote);
     if(widget.isHost){
       supabaseServices.updateVotingInGameplay(widget.gameId);
     }
