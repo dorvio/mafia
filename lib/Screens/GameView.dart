@@ -1,6 +1,7 @@
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mafia/Widgets/PlayerListWidget.dart';
 import 'package:mafia/constants.dart';
 
 import '../Classes/Player.dart';
@@ -33,6 +34,8 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   bool votingStart = false;
   bool votingEnd = false;
   bool dayNightSwitch = true;
+
+  Player? choice;
 
   @override
   void initState() {
@@ -75,12 +78,12 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0, bottom: 0.0),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Text(
                   "${player!.getPlayerRole()?.toUpperCase()}",
                   style: GoogleFonts.shadowsIntoLight(
                     textStyle: const TextStyle(
@@ -90,77 +93,73 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: player!.getPlayerRoleId() == 6,
-                    child: Text(
-                      allPlayers.getMafiaNames(widget.playerId),
-                      style: const TextStyle(
-                        color: ORANGE,
-                        fontSize: 20,
-                      )
-                    ),
-                ),
-              ],
+              ),
             ),
             Visibility(
-              visible: votingEnd,
-                child: const Text(
-                  "Koniec głosowania.\n"
-                      "Czas na dyskusję.",
-                  style: TextStyle(
-                    fontSize: 20,
+              visible: player!.getPlayerRoleId() == 6,
+              child: Text(
+                  allPlayers.getMafiaNames(widget.playerId),
+                  style: const TextStyle(
                     color: ORANGE,
-                  ),
-                ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Visibility(
-                  visible: widget.isHost,
-                  child:  dayNightSwitch ? ElevatedButton(
-                    onPressed: votingStart ? null : () {
-                      supabaseServices.updateVotingInGameplay(widget.gameId);
-                      // startNightVoting();
-                    },
-                    child: const Text(
-                      "Miasto idzie spać",
-                    ),
+                    fontSize: 20,
                   )
-                      : ElevatedButton(
-                    onPressed: votingStart ? null : () {
-                      supabaseServices.updateVotingInGameplay(widget.gameId);
-                      // startDayVoting();
-                    },
-                    child: const Text(
-                      "Głosowanie",
+              ),
+            ),
+            Expanded(
+                child: votingStart ? PlayerListWidget(players: allPlayers, playerRoleId: player!.getPlayerRoleId()) : SizedBox(),
+              //TODO obudować widgety we wrapper, który zwraca odpowiedni widget
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Visibility(
+                    visible: widget.isHost,
+                    child:  dayNightSwitch ? ElevatedButton(
+                      onPressed: votingStart ? null : () {
+                        supabaseServices.updateVotingInGameplay(widget.gameId);
+                        // startNightVoting();
+                      },
+                      child: const Text(
+                        "Miasto idzie spać",
+                      ),
+                    )
+                        : ElevatedButton(
+                      onPressed: votingStart ? null : () {
+                        supabaseServices.updateVotingInGameplay(widget.gameId);
+                        // startDayVoting();
+                      },
+                      child: const Text(
+                        "Głosowanie",
+                      ),
                     ),
                   ),
-                ),
-                CircularCountDownTimer(
-                  controller: _controller,
-                  width: 100,
-                  height: 100,
-                  duration: votingTime * 60,
-                  isReverse: true,
-                  isReverseAnimation: true,
-                  autoStart: false,
-                  fillColor: ORANGE,
-                  ringColor: ORANGE,
-                  textStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: ORANGE,
+                  CircularCountDownTimer(
+                    controller: _controller,
+                    width: 100,
+                    height: 100,
+                    duration: votingTime * 60,
+                    isReverse: true,
+                    isReverseAnimation: true,
+                    autoStart: false,
+                    fillColor: ORANGE,
+                    ringColor: ORANGE,
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: ORANGE,
+                    ),
+                    timeFormatterFunction: (defaultFormatterFunction, duration) {
+                      return "${duration.inMinutes.toStringAsFixed(0).padLeft(2,'0')}"
+                          " : ${(duration.inSeconds % 60).toStringAsFixed(0).padLeft(2,'0')}";
+                    },
+                    onComplete: onVotingEnd,
                   ),
-                  timeFormatterFunction: (defaultFormatterFunction, duration) {
-                    return "${duration.inMinutes.toStringAsFixed(0).padLeft(2,'0')}"
-                        " : ${(duration.inSeconds % 60).toStringAsFixed(0).padLeft(2,'0')}";
-                  },
-                  onComplete: onVotingEnd,
-                ),
-              ],
+                ],
+              ),
             ),
-          ]
+        ],
         ),
       ),
     );
@@ -190,5 +189,5 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
     }
   }
 
-  //TODO dodać listiner jakies coś na bazie na start rundy startowanie głosowania/odliczania z listenera i ogólnie gre + ew animacje
+  //TODO logika gry, zabijanie, ratowanie i cale to gówno
 }

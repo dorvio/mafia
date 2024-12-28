@@ -15,13 +15,17 @@ class PlayerList {
     return players
         .where((player) => player.getPlayerRoleId() == 6)
         .where((player) => player.getPlayerId() != id)
-        .map((player) => player.getPlayerName())
+        .map((player) => player.getPlayerName().toUpperCase())
         .join('      ');
   }
 
   bool checkIfPlayerIsMafia(int id) {
     Player checkedPlayer = getPlayerById(id);
     return checkedPlayer.getPlayerRoleId() == 6;
+  }
+
+  int getPlayerCount(){
+    return players.length;
   }
 
 }
