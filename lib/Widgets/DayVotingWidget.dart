@@ -7,36 +7,68 @@ import 'package:mafia/constants.dart';
 import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
 
-class PlayerListWidget extends StatefulWidget {
+class DayVotingWidget extends StatefulWidget {
   final PlayerList players;
   final int playerRoleId;
+  final int playerId;
   final int gameId;
   final Function(int vote)? onVoteChange;
 
 
-  const PlayerListWidget({
+  const DayVotingWidget({
     Key? key,
     required this.players,
     required this.playerRoleId,
+    required this.playerId,
     required this.gameId,
     this.onVoteChange,
   }) : super(key: key);
 
   @override
-  _PlayerListWidgetState createState() => _PlayerListWidgetState();
+  _DayVotingWidgetState createState() => _DayVotingWidgetState();
 }
 
-class _PlayerListWidgetState extends State<PlayerListWidget> {
+class _DayVotingWidgetState extends State<DayVotingWidget> {
   SupabaseServices supabaseServices = SupabaseServices();
   int selectedId = -1;
+  late Map<int, int> dayVotes;
+  late List<Player> alivePlayers;
+
+  @override
+  void initState() {
+    super.initState();
+
+    alivePlayers = widget.players.getAlivePlayers();
+    dayVotes = {
+      for (int i = 0; i < alivePlayers.length; i++) i: 0,
+    };
+  }
+
+  @override
+  void dispose(){
+    supabaseServices.unsubscribeToPlayerDayVote();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<Player> alivePlayers = widget.players.getAlivePlayers();
+
+    supabaseServices.subscribeToPlayerDayVote(
+      widget.gameId,
+      alivePlayers.length,
+          (Map<int, int> newVotes) {
+        setState(() {
+          dayVotes = newVotes;
+        });
+      },
+    );
+
     return Column(
       children: [
         const SizedBox(height: 30),
         Text(
-          "Kogo chcesz powiesić za bycie mafia?",
+          "Kogo powiesić za bycie mafią:",
           style: GoogleFonts.aboreto(
             textStyle: const TextStyle(
               fontSize: 20,
@@ -50,9 +82,9 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
             padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
             child: ListView.builder(
               padding: EdgeInsets.zero,
-              itemCount: widget.players.getPlayerCount(),
+              itemCount: alivePlayers.length,
               itemBuilder: (context, index) {
-                final player = widget.players.players[index];
+                final player = alivePlayers[index];
                 return Container(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   width: double.infinity,
@@ -60,8 +92,10 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
                     onPressed: () {
                       if(selectedId == index){
                         onDeselect(index);
+                        supabaseServices.updatePlayerDayVote(widget.playerId, null);
                       } else if(selectedId == -1){
                         onSelect(index);
+                        supabaseServices.updatePlayerDayVote(widget.playerId, index);
                       }
                     },
                     style: FilledButton.styleFrom(
@@ -72,13 +106,26 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
                     ),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        player.getPlayerName().toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            player.getPlayerName().toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                          Text(
+                            dayVotes[index].toString(),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

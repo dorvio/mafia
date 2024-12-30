@@ -8,17 +8,27 @@ import '../Classes/Player.dart';
 class SupabaseServices {
   final SupabaseClient supabase = Supabase.instance.client;
   late RealtimeChannel playerChannel;
+  late RealtimeChannel mafiaVoteChannel;
+  late RealtimeChannel dayVoteChannel;
   late RealtimeChannel gameChannel;
   late RealtimeChannel gameplayChannel;
   int playersCount = 1;
   bool voting = false;
+  int alivePlayers = 0;
+
+  Map<int, int> dayVotes = {};
+  Map<int, int> nightVotes = {};
 
   Future<Game?> createGame() async {
     try {
       final response = await supabase.from('games').insert({
         'game_code': generateGameCode(),
       }).select().single();
-      Game game = new Game(gameId: response['id'], gameCode: response['game_code'], status: response['status'], createdAt: response['created_at'], votingTime: response['voting_time']);
+      Game game = new Game(gameId: response['id'],
+          gameCode: response['game_code'],
+          status: response['status'],
+          createdAt: response['created_at'],
+          votingTime: response['voting_time']);
       return game;
     } catch (e) {
       print("Error inserting into 'games': $e");
@@ -29,7 +39,7 @@ class SupabaseServices {
   Future <void> deleteGame(gameId) async {
     try {
       final response = await supabase.from('games').delete()
-      .eq('id', gameId);
+          .eq('id', gameId);
     } catch (e) {
       print("Error deleting from 'games': $e");
     }
@@ -63,7 +73,7 @@ class SupabaseServices {
       return -1;
     }
   }
-  
+
   Future <bool> updateGameStatus(int gameId, int gameStatus) async {
     try {
       final response = await supabase.from('games')
@@ -76,7 +86,8 @@ class SupabaseServices {
     }
   }
 
-  void subscribeToGamesStatus(int gameId, Function(int newStatus) onGameStatusChanged) {
+  void subscribeToGamesStatus(int gameId,
+      Function(int newStatus) onGameStatusChanged) {
     gameChannel = supabase.channel('game-status-$gameId');
 
     gameChannel.onPostgresChanges(
@@ -116,33 +127,49 @@ class SupabaseServices {
   }
 
   Future <void> deletePlayer(playerId) async {
-    try{
+    try {
       final response = await supabase.from('players').delete()
           .eq('id', playerId);
-    }catch (e) {
+    } catch (e) {
       print("Error deleting from 'players': $e");
     }
   }
 
   Future<int> getNumberOfPlayerForGame(int gameId) async {
-    try{
+    try {
       final response = await supabase
           .from('players')
           .select('id')
           .eq('game_id', gameId)
           .count();
       return response.count;
-    }catch (e) {
-      print("Error deleting from 'players': $e");
+    } catch (e) {
+      print("Error geting players number for game: $e");
       return -1;
     }
   }
 
-  void subscribeToPlayerChanges(int gameId, Function(int playerCount) onPlayerCountChanged) async {
+  Future<int> getAlivePlayerCount(int gameId) async {
+    try {
+      final response = await supabase
+          .from('players')
+          .select('id')
+          .eq('game_id', gameId)
+          .eq('is_dead', false)
+          .count();
+      return response.count;
+    } catch (e) {
+      print("Error geting players number for game: $e");
+      return -1;
+    }
+  }
+
+  void subscribeToPlayerChanges(int gameId,
+      Function(int playerCount) onPlayerCountChanged) async {
     playerChannel = supabase.channel('game-lobby-$gameId');
 
     playerChannel
-    .onPostgresChanges(
+        .onPostgresChanges(
       event: PostgresChangeEvent.insert,
       schema: 'public',
       table: 'players',
@@ -157,14 +184,14 @@ class SupabaseServices {
         onPlayerCountChanged(playersCount);
       },
     )
-    .onPostgresChanges(
+        .onPostgresChanges(
       event: PostgresChangeEvent.delete,
       schema: 'public',
       table: 'players',
       callback: (PostgresChangePayload payload) async {
         print("Player removed");
         int num = await getNumberOfPlayerForGame(gameId);
-        if(num == -1){
+        if (num == -1) {
           print("Cos poszlo nie tak");
         } else {
           playersCount = num;
@@ -181,13 +208,16 @@ class SupabaseServices {
   }
 
   Future<Player?> getPlayerDataById(int playerId) async {
-    try{
+    try {
       final response = await supabase.from('players').select()
           .eq('id', playerId)
           .single();
-      Player player = Player(playerId: playerId, playerName: response['player_name'], playerRole: response['player_role'], isDead: response['is_dead']);
+      Player player = Player(playerId: playerId,
+          playerName: response['player_name'],
+          playerRole: response['player_role'],
+          isDead: response['is_dead']);
       return player;
-    }catch (e) {
+    } catch (e) {
       print("Error fetching player with id $playerId: $e");
       return null;
     }
@@ -201,12 +231,13 @@ class SupabaseServices {
           .eq('game_id', gameId);
 
       List<Player> players = List<Player>.from(
-        response.map((playerData) => Player(
-          playerId: playerData['id'],
-          playerName: playerData['player_name'],
-          playerRole: playerData['player_role'],
-          isDead: playerData['is_dead'],
-        )),
+        response.map((playerData) =>
+            Player(
+              playerId: playerData['id'],
+              playerName: playerData['player_name'],
+              playerRole: playerData['player_role'],
+              isDead: playerData['is_dead'],
+            )),
       );
 
       return players;
@@ -228,12 +259,12 @@ class SupabaseServices {
   }
 
   Future<void> updatePlayerRole(int playerId, int role) async {
-    try{
+    try {
       final response = await supabase
           .from('players')
           .update({'player_role': role})
           .eq('id', playerId);
-    } catch(e){
+    } catch (e) {
       print("Error updating player role: $e");
     }
   }
@@ -246,7 +277,8 @@ class SupabaseServices {
     const String chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
 
-    return List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(8, (index) => chars[random.nextInt(chars.length)])
+        .join();
   }
 
   Future<void> assignRoles(List<int> availableRoles, int gameId) async {
@@ -257,35 +289,35 @@ class SupabaseServices {
     List<int> rolesToAssign = [];
     List<int> playersIds = [];
 
-    if(playersCount < 5){
+    if (playersCount < 5) {
       mafiaCount = 1;
-    } else if(playersCount < 8) {
+    } else if (playersCount < 8) {
       mafiaCount = 2;
     } else {
       mafiaCount = 3;
     }
-    for(int i = 0; i < mafiaCount; ++i){
+    for (int i = 0; i < mafiaCount; ++i) {
       rolesToAssign.add(6);
     }
     notMafiaPlayers = playersCount - mafiaCount;
-    if(availableRoles.length >= notMafiaPlayers){
+    if (availableRoles.length >= notMafiaPlayers) {
       notMafiaRoles = notMafiaPlayers;
       villagers = 0;
-    }else{
+    } else {
       notMafiaRoles = availableRoles.length;
       villagers = notMafiaPlayers - notMafiaRoles;
     }
-    for(int i = 0; i < notMafiaRoles; ++i){
+    for (int i = 0; i < notMafiaRoles; ++i) {
       rolesToAssign.add(availableRoles[i]);
     }
-    for(int i=0; i < villagers; ++i){
+    for (int i = 0; i < villagers; ++i) {
       rolesToAssign.add(7);
     }
     rolesToAssign.shuffle();
 
     playersIds = await getPlayersIdsForGame(gameId);
 
-    for(int i = 0; i < playersCount; ++i){
+    for (int i = 0; i < playersCount; ++i) {
       await updatePlayerRole(playersIds[i], rolesToAssign[i]);
     }
   }
@@ -311,17 +343,22 @@ class SupabaseServices {
     gameplayChannel.subscribe();
   }
 
-  void unsubscribeToGameplay(){
+  void unsubscribeToGameplay() {
     supabase.removeChannel(gameplayChannel);
   }
 
-  void subscribeToPlayerVoteMafia(int gameId, Function(int vote) onVoteChanged) {
-    playerChannel = supabase.channel('player-vote-$gameId');
+  Future<void> subscribeToPlayerVoteMafia(int gameId, int alivePlayersCount,
+      Function(Map<int, int> dayVotes) onVoteChanged) async {
+    if (nightVotes.isEmpty) {
+      nightVotes = {for (int i = 0; i < alivePlayersCount; i++) i: 0};
+    }
 
-    playerChannel.onPostgresChanges(
+    mafiaVoteChannel = supabase.channel('player-mafia-vote-$gameId');
+
+    mafiaVoteChannel.onPostgresChanges(
       event: PostgresChangeEvent.update,
       schema: 'public',
-      table: 'players',
+      table: 'vote',
       filter: PostgresChangeFilter(
         type: PostgresChangeFilterType.eq,
         column: 'game_id',
@@ -329,38 +366,119 @@ class SupabaseServices {
       ),
       callback: (PostgresChangePayload payload) {
         final newRecord = payload.newRecord;
-        if(newRecord['player_role'] == 6){
-          int vote = newRecord['vote'];
-          onVoteChanged(vote);
+        final oldRecord = payload.oldRecord;
+        print(newRecord);
+        if (newRecord != null && newRecord['night_vote'] != null && newRecord['role_id'] == 6) {
+          final newVote = newRecord['night_vote'] as int;
+          nightVotes[newVote] = (nightVotes[newVote] ?? 0) + 1;
         }
+        print(oldRecord);
+        if (oldRecord != null && oldRecord['night_vote'] != null && oldRecord['role_id'] == 6) {
+          final oldVote = oldRecord['night_vote'] as int;
+          nightVotes[oldVote] = (nightVotes[oldVote] ?? 0) - 1;
+        }
+
+        onVoteChanged(nightVotes);
       },
     );
-    playerChannel.subscribe();
+
+    mafiaVoteChannel.subscribe();
   }
 
-  void unsubscribeToPlayerVoteMafia(){
-    supabase.removeChannel(playerChannel);
+  void unsubscribeToPlayerVoteMafia() {
+    supabase.removeChannel(mafiaVoteChannel);
   }
 
-  void updatePlayerVote(int playerId, int vote) async {
-    try {
-      final response = await supabase.from('players')
-          .update({'vote': vote})
-          .eq('id', playerId);
-    } catch (e) {
-      print("Error updating player vote': $e");
+    Future<void> subscribeToPlayerDayVote(int gameId, int alivePlayersCount,
+        Function(Map<int, int> dayVotes) onVoteChanged) async {
+      if (dayVotes.isEmpty) {
+        dayVotes = {for (int i = 0; i < alivePlayersCount; i++) i: 0};
+      }
+
+      dayVoteChannel = supabase.channel('player-day-vote-$gameId');
+
+      dayVoteChannel.onPostgresChanges(
+        event: PostgresChangeEvent.update,
+        schema: 'public',
+        table: 'vote',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'game_id',
+          value: gameId,
+        ),
+        callback: (PostgresChangePayload payload) {
+          final newRecord = payload.newRecord;
+          final oldRecord = payload.oldRecord;
+          print(newRecord);
+          if (newRecord != null && newRecord['day_vote'] != null) {
+            final newVote = newRecord['day_vote'] as int;
+            dayVotes[newVote] = (dayVotes[newVote] ?? 0) + 1;
+          }
+          print(oldRecord);
+          if (oldRecord != null && oldRecord['day_vote'] != null) {
+            final oldVote = oldRecord['day_vote'] as int;
+            dayVotes[oldVote] = (dayVotes[oldVote] ?? 0) - 1;
+          }
+
+          onVoteChanged(dayVotes);
+        },
+      );
+
+      dayVoteChannel.subscribe();
+    }
+
+    void unsubscribeToPlayerDayVote() {
+      supabase.removeChannel(dayVoteChannel);
+    }
+
+    void updatePlayerDayVote(int playerId, int? vote) async {
+      try {
+        final response = await supabase.from('vote')
+            .update({'day_vote': vote})
+            .eq('player_id', playerId);
+      } catch (e) {
+        print("Error updating player day vote': $e");
+      }
+    }
+
+    void updatePlayerNightVote(int playerId, int? vote) async {
+      try {
+        final response = await supabase.from('vote')
+            .update({'night_vote': vote})
+            .eq('player_id', playerId);
+      } catch (e) {
+        print("Error updating player night vote': $e");
+      }
+    }
+
+    void clearDayVote(int gameId) async {
+      try {
+        final response = await supabase.from('vote')
+            .update({'day_vote': null})
+            .eq('game_id', gameId);
+      } catch (e) {
+        print("Error clearing day votes': $e");
+      }
+    }
+
+    void clearNightVote(int gameId) async {
+      try {
+        final response = await supabase.from('vote')
+            .update({'night_vote': null})
+            .eq('game_id', gameId);
+      } catch (e) {
+        print("Error clearing day votes': $e");
+      }
+    }
+
+    void updateVotingInGameplay(int gameId) async {
+      voting = !voting;
+      try {
+        final response = await supabase.from('gameplay')
+            .update({'voting': voting})
+            .eq('id', gameId);
+      } catch (e) {
+        print("Error updating gameplay voting': $e");
+      }
     }
   }
-
-  void updateVotingInGameplay(int gameId) async {
-    voting = !voting;
-    try {
-      final response = await supabase.from('gameplay')
-          .update({'voting': voting})
-          .eq('id', gameId);
-    } catch (e) {
-      print("Error updating gameplay voting': $e");
-    }
-  }
-
-}

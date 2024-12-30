@@ -7,29 +7,33 @@ import 'package:mafia/constants.dart';
 import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
 
-class PlayerListWidget extends StatefulWidget {
+class NightVotingWidget extends StatefulWidget {
   final PlayerList players;
   final int playerRoleId;
   final int gameId;
+  final int playerId;
   final Function(int vote)? onVoteChange;
 
 
-  const PlayerListWidget({
+  const NightVotingWidget({
     Key? key,
     required this.players,
     required this.playerRoleId,
     required this.gameId,
+    required this.playerId,
     this.onVoteChange,
   }) : super(key: key);
 
   @override
-  _PlayerListWidgetState createState() => _PlayerListWidgetState();
+  _NightVotingWidgetState createState() => _NightVotingWidgetState();
 }
 
-class _PlayerListWidgetState extends State<PlayerListWidget> {
+class _NightVotingWidgetState extends State<NightVotingWidget> {
   SupabaseServices supabaseServices = SupabaseServices();
   int selectedId = -1;
   List<int> mafiaChoice = [];
+  late Map<int, int> nightVotes;
+  late List<Player> alivePlayers;
 
   Map<int, String> textToRole = {
     1: "Wybierz kogo chcesz obronić:",
@@ -42,9 +46,27 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
   };
 
   @override
+  void initState() {
+    alivePlayers = widget.players.getAlivePlayers();
+    nightVotes = {
+      for (int i = 0; i < alivePlayers.length; i++) i: 0,
+    };
+    super.initState();
+  }
+
+  @override
+  void dispose(){
+    supabaseServices.unsubscribeToPlayerVoteMafia();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
 
+
+
     if(widget.playerRoleId == 5 || widget.playerRoleId == 7){
+      //Burmistrz, Wieśniak
       return Column(
           children: [
           const SizedBox(height: 30),
@@ -61,6 +83,7 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
         ]
       );
     } else if(widget.playerRoleId == 4) {
+      //Grabarz
       List<Player> deadPlayers = widget.players.getDeadPlayers();
       return Column(
           children: [
@@ -112,8 +135,18 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
           ]
       );
     } else if(widget.playerRoleId == 6) {
-      //TODO mafia updates who votes for who
-      supabaseServices.subscribeToPlayerVoteMafia(widget.gameId, (int vote){});
+      //Mafia
+
+      supabaseServices.subscribeToPlayerVoteMafia(
+        widget.gameId,
+        alivePlayers.length,
+            (Map<int, int> newVotes) {
+          setState(() {
+            nightVotes = newVotes;
+          });
+        },
+      );
+
       return Column(
         children: [
           const SizedBox(height: 30),
@@ -132,9 +165,9 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
               padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: widget.players.getPlayerCount(),
+                itemCount: alivePlayers.length,
                 itemBuilder: (context, index) {
-                  final player = widget.players.players[index];
+                  final player = alivePlayers[index];
                   return Container(
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     width: double.infinity,
@@ -142,8 +175,10 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
                       onPressed: () {
                         if(selectedId == index){
                           onDeselect(index);
+                          supabaseServices.updatePlayerNightVote(widget.playerId, null);
                         } else if(selectedId == -1){
                           onSelect(index);
+                          supabaseServices.updatePlayerNightVote(widget.playerId, index);
                         }
                       },
                       style: FilledButton.styleFrom(
@@ -154,13 +189,26 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
                       ),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          player.getPlayerName().toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              player.getPlayerName().toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                            Text(
+                              nightVotes[index].toString(),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -172,6 +220,7 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
         ],
       );
     } else {
+      //Obrońca, Prokurator, Bimbrownik
       return Column(
         children: [
           const SizedBox(height: 30),
@@ -190,9 +239,9 @@ class _PlayerListWidgetState extends State<PlayerListWidget> {
               padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: widget.players.getPlayerCount(),
+                itemCount: alivePlayers.length,
                 itemBuilder: (context, index) {
-                  final player = widget.players.players[index];
+                  final player = alivePlayers[index];
                   return Container(
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     width: double.infinity,

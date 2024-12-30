@@ -53,7 +53,7 @@ void goToRulesView(BuildContext context) {
   Navigator.push(
     context,
     // MaterialPageRoute(builder: (context) => RulesView()),
-    MaterialPageRoute(builder: (context) => GameView(playerId: 9, isHost: true, gameId: 3)),
+    MaterialPageRoute(builder: (context) => GameView(playerId: 7, isHost: true, gameId: 3)),
   );
 }
 

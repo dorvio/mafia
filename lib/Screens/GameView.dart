@@ -1,7 +1,8 @@
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mafia/Widgets/PlayerListWidget.dart';
+import 'package:mafia/Widgets/NightVotingWidget.dart';
+import 'package:mafia/Widgets/Wrapper.dart';
 import 'package:mafia/constants.dart';
 
 import '../Classes/Player.dart';
@@ -41,6 +42,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   @override
   void initState() {
     _loadPlayerData();
+    supabaseServices.unsubscriveAllChanels();
     super.initState();
   }
 
@@ -107,19 +109,21 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
               ),
             ),
             Expanded(
-                child: votingStart ?
-                PlayerListWidget(
+                child: Wrapper(
+                    votingStart: votingStart,
+                    votingEnd: votingEnd,
+                    dayNightSwitch: dayNightSwitch,
                     players: allPlayers,
                     playerRoleId: player!.getPlayerRoleId(),
+                    playerId: widget.playerId,
                     gameId: widget.gameId,
-                  onVoteChange: (int vote){
-                      setState(() {
-                        myVote = vote;
-                      });
+                    isHost: widget.isHost,
+                  onNightVoteChange: (int vote){
+                    setState(() {
+                      myVote = vote;
+                    });
                   },
-                )
-                    : SizedBox(),
-              //TODO obudować widgety we wrapper, który zwraca odpowiedni widget
+                ),
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -131,6 +135,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                     child:  dayNightSwitch ? ElevatedButton(
                       onPressed: votingStart ? null : () {
                         supabaseServices.updateVotingInGameplay(widget.gameId);
+                        supabaseServices.clearNightVote(widget.gameId);
                         // startNightVoting();
                       },
                       child: const Text(
@@ -140,6 +145,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                         : ElevatedButton(
                       onPressed: votingStart ? null : () {
                         supabaseServices.updateVotingInGameplay(widget.gameId);
+                        supabaseServices.clearDayVote(widget.gameId);
                         // startDayVoting();
                       },
                       child: const Text(
@@ -196,10 +202,15 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
       votingEnd = true;
       dayNightSwitch = !dayNightSwitch;
     });
-    supabaseServices.updatePlayerVote(widget.playerId, myVote);
+    if(dayNightSwitch){
+      supabaseServices.updatePlayerDayVote(widget.playerId, myVote);
+    }else{
+      supabaseServices.updatePlayerNightVote(widget.playerId, myVote);
+    }
     if(widget.isHost){
       supabaseServices.updateVotingInGameplay(widget.gameId);
     }
+    // supabaseServices.unsubscriveAllChanels();
   }
 
   //TODO logika gry, zabijanie, ratowanie i cale to gówno
