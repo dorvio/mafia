@@ -367,12 +367,12 @@ class SupabaseServices {
       callback: (PostgresChangePayload payload) {
         final newRecord = payload.newRecord;
         final oldRecord = payload.oldRecord;
-        print(newRecord);
+
         if (newRecord != null && newRecord['night_vote'] != null && newRecord['role_id'] == 6) {
           final newVote = newRecord['night_vote'] as int;
           nightVotes[newVote] = (nightVotes[newVote] ?? 0) + 1;
         }
-        print(oldRecord);
+
         if (oldRecord != null && oldRecord['night_vote'] != null && oldRecord['role_id'] == 6) {
           final oldVote = oldRecord['night_vote'] as int;
           nightVotes[oldVote] = (nightVotes[oldVote] ?? 0) - 1;
@@ -409,12 +409,12 @@ class SupabaseServices {
         callback: (PostgresChangePayload payload) {
           final newRecord = payload.newRecord;
           final oldRecord = payload.oldRecord;
-          print(newRecord);
+
           if (newRecord != null && newRecord['day_vote'] != null) {
             final newVote = newRecord['day_vote'] as int;
             dayVotes[newVote] = (dayVotes[newVote] ?? 0) + 1;
           }
-          print(oldRecord);
+
           if (oldRecord != null && oldRecord['day_vote'] != null) {
             final oldVote = oldRecord['day_vote'] as int;
             dayVotes[oldVote] = (dayVotes[oldVote] ?? 0) - 1;
@@ -431,7 +431,35 @@ class SupabaseServices {
       supabase.removeChannel(dayVoteChannel);
     }
 
-    void updatePlayerDayVote(int playerId, int? vote) async {
+  Future<Map<int, int>> getPlayersDayVotes(int gameId) async {
+    //TODO tuaj nie zwraca danych (bo response != lista vote
+    //TODO jeżeli pominiem nulle a ktoś nie zagłosuje to pominie jego glos
+    Map<int, int> votesMap = {};
+
+    try {
+      final response = await supabase
+          .from('vote')
+          .select('day_vote')
+          .eq('game_id', gameId);
+
+      List<dynamic> votesData = response;
+
+      int index = 0;
+
+      for (var vote in votesData) {
+        if (vote['day_vote'] != null) {
+          votesMap[index] = vote['day_vote'];
+        }
+      }
+
+    } catch (e) {
+      print("Error getting players' day votes: $e");
+    }
+    return votesMap;
+  }
+
+
+  void updatePlayerDayVote(int playerId, int? vote) async {
       try {
         final response = await supabase.from('vote')
             .update({'day_vote': vote})

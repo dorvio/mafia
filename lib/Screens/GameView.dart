@@ -35,7 +35,6 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
   bool votingStart = false;
   bool votingEnd = false;
   bool dayNightSwitch = true;
-  int myVote = -1;
 
   Player? choice;
 
@@ -118,11 +117,6 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                     playerId: widget.playerId,
                     gameId: widget.gameId,
                     isHost: widget.isHost,
-                  onNightVoteChange: (int vote){
-                    setState(() {
-                      myVote = vote;
-                    });
-                  },
                 ),
             ),
             Padding(
@@ -136,7 +130,6 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                       onPressed: votingStart ? null : () {
                         supabaseServices.updateVotingInGameplay(widget.gameId);
                         supabaseServices.clearNightVote(widget.gameId);
-                        // startNightVoting();
                       },
                       child: const Text(
                         "Miasto idzie spać",
@@ -202,15 +195,9 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
       votingEnd = true;
       dayNightSwitch = !dayNightSwitch;
     });
-    if(dayNightSwitch){
-      supabaseServices.updatePlayerDayVote(widget.playerId, myVote);
-    }else{
-      supabaseServices.updatePlayerNightVote(widget.playerId, myVote);
-    }
     if(widget.isHost){
       supabaseServices.updateVotingInGameplay(widget.gameId);
     }
-    // supabaseServices.unsubscriveAllChanels();
   }
 
   //TODO logika gry, zabijanie, ratowanie i cale to gówno

@@ -12,7 +12,6 @@ class DayVotingWidget extends StatefulWidget {
   final int playerRoleId;
   final int playerId;
   final int gameId;
-  final Function(int vote)? onVoteChange;
 
 
   const DayVotingWidget({
@@ -21,7 +20,6 @@ class DayVotingWidget extends StatefulWidget {
     required this.playerRoleId,
     required this.playerId,
     required this.gameId,
-    this.onVoteChange,
   }) : super(key: key);
 
   @override
@@ -46,6 +44,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
 
   @override
   void dispose(){
+    supabaseServices.updatePlayerDayVote(widget.playerId, selectedId);
     supabaseServices.unsubscribeToPlayerDayVote();
     super.dispose();
   }
@@ -142,14 +141,12 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
     setState(() {
       selectedId = index;
     });
-    widget.onVoteChange?.call(widget.players.getIdByIndex(index));
   }
 
   void onDeselect(int index){
     setState(() {
       selectedId = -1;
     });
-    widget.onVoteChange?.call(widget.players.getIdByIndex(index));
   }
 
 }

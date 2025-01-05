@@ -12,7 +12,6 @@ class NightVotingWidget extends StatefulWidget {
   final int playerRoleId;
   final int gameId;
   final int playerId;
-  final Function(int vote)? onVoteChange;
 
 
   const NightVotingWidget({
@@ -21,7 +20,6 @@ class NightVotingWidget extends StatefulWidget {
     required this.playerRoleId,
     required this.gameId,
     required this.playerId,
-    this.onVoteChange,
   }) : super(key: key);
 
   @override
@@ -56,6 +54,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
 
   @override
   void dispose(){
+    supabaseServices.updatePlayerNightVote(widget.playerId, selectedId);
     supabaseServices.unsubscribeToPlayerVoteMafia();
     super.dispose();
   }
@@ -285,14 +284,12 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
     setState(() {
       selectedId = index;
     });
-    widget.onVoteChange?.call(widget.players.getIdByIndex(index));
   }
 
   void onDeselect(int index){
     setState(() {
       selectedId = -1;
     });
-    widget.onVoteChange?.call(widget.players.getIdByIndex(index));
   }
 
 }
