@@ -11,6 +11,11 @@ class PlayerList {
     return players.firstWhere((player) => player.playerId == id);
   }
 
+  String getPlayerNameById(int id){
+    Player fetchedPlayer = getPlayerById(id);
+    return fetchedPlayer.getPlayerName();
+  }
+
   String getMafiaNames(int id) {
     return players
         .where((player) => player.getPlayerRoleId() == 6)

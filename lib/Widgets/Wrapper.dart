@@ -44,7 +44,7 @@ class _WrapperState extends State<Wrapper> {
 
   @override
   Widget build(BuildContext context) {
-    //TODO dodać wyświetlanie wyników w noc i dzień
+    //TODO dodać wyświetlanie wyników w noc
     if(widget.dayNightSwitch && widget.votingStart){
       return NightVotingWidget(
           players: widget.players,
@@ -56,6 +56,7 @@ class _WrapperState extends State<Wrapper> {
       return DayVotingResultWidget(
           players: widget.players,
           gameId: widget.gameId,
+          isHost : widget.isHost,
       );
     } else if(!widget.dayNightSwitch && widget.votingStart){
       return DayVotingWidget(

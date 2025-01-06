@@ -10,12 +10,14 @@ import '../Services/SupabaseServices.dart';
 class DayVotingResultWidget extends StatefulWidget {
   final PlayerList players;
   final int gameId;
+  final bool isHost;
 
 
   const DayVotingResultWidget({
     Key? key,
     required this.players,
     required this.gameId,
+    required this.isHost,
   }) : super(key: key);
 
   @override
@@ -25,8 +27,8 @@ class DayVotingResultWidget extends StatefulWidget {
 class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
   SupabaseServices supabaseServices = SupabaseServices();
   bool isLoading = true;
-  late Map<int, int> votes;
-  late int deadPlayerIndex;
+  Map<int, int> votes = {};
+  late int deadPlayerId;
 
   @override
   void initState() {
@@ -36,10 +38,10 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
 
   Future<void> _getData() async {
     Map<int, int> fetchVotes = await supabaseServices.getPlayersDayVotes(widget.gameId);
-    int index = calculateDeadPlayer();
+    int id = calculateDeadPlayer(fetchVotes);
     setState(() {
       votes = fetchVotes;
-      deadPlayerIndex = index;
+      deadPlayerId = id;
       isLoading = false;
     });
   }
@@ -52,17 +54,18 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
       return Center(child: CircularProgressIndicator());
     }
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text("Powieszono gracza:",
-          style: TextStyle(
+        Text(
+          deadPlayerId == -1 ? "" : "Powieszono gracza:",
+          style: const TextStyle(
             fontSize: 20,
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
-          deadPlayerIndex == -1 ? alivePlayers[deadPlayerIndex].getPlayerName() : "Nikt nie zginął",
+          deadPlayerId == -1 ? "Nikt nie zginął" : widget.players.getPlayerNameById(deadPlayerId),
           style: const TextStyle(
             fontSize: 30,
             color: ORANGE,
@@ -71,26 +74,33 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
         ),
         Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+              padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: alivePlayers.length,
                 itemBuilder: (context, index){
                   final player = alivePlayers[index];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    width: double.infinity,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "${player.getPlayerName()} zaglosował na ${widget.players.getPlayerById(alivePlayers[index].getPlayerId())}",
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                  return Column(
+                    children: [
+                      Container(
+                        color: ORANGE,
+                        padding: const EdgeInsets.symmetric(vertical: 5.0),
+                        width: double.infinity,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            votes[player.getPlayerId()] == -1 ? "${player.getPlayerName()} nie zagłosował" :
+                            "${player.getPlayerName()} zagłosował na ${widget.players.getPlayerNameById(votes[player.getPlayerId()]!)}",
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 5),
+                    ],
                   );
                 },
               ),
@@ -100,23 +110,32 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
     );
   }
 
-  int calculateDeadPlayer(){
-    int? maxKey;
-    int maxValue = -1;
+  int calculateDeadPlayer(Map<int, int> votesToCalculate) {
+    Map<int, int> frequencyMap = {};
 
-    votes.forEach((key, value) {
-      if (value > maxValue) {
-        maxValue = value;
-        maxKey = key;
+    for (var value in votesToCalculate.values) {
+      if (value != -1) {
+        frequencyMap[value] = (frequencyMap[value] ?? 0) + 1;
+      }
+    }
+
+    if (frequencyMap.isEmpty) {
+      return -1;
+    }
+    int mostFrequentValue = -1;
+    int maxFrequency = 0;
+
+    frequencyMap.forEach((key, value) {
+      if (value > maxFrequency) {
+        maxFrequency = value;
+        mostFrequentValue = key;
       }
     });
 
-    if(maxKey == 0){
-      return -1;
-    } else{
-      return maxKey!;
-
+    if(widget.isHost){
+      mostFrequentValue == -1 ? null : supabaseServices.updateDeadPlayer(mostFrequentValue);
     }
+    return mostFrequentValue;
   }
 
 }

@@ -389,10 +389,10 @@ class SupabaseServices {
     supabase.removeChannel(mafiaVoteChannel);
   }
 
-    Future<void> subscribeToPlayerDayVote(int gameId, int alivePlayersCount,
+    Future<void> subscribeToPlayerDayVote(int gameId, List<Player> players,
         Function(Map<int, int> dayVotes) onVoteChanged) async {
       if (dayVotes.isEmpty) {
-        dayVotes = {for (int i = 0; i < alivePlayersCount; i++) i: 0};
+        dayVotes = {for (int i = 0; i < players.length; i++) players[i].getPlayerId() : 0};
       }
 
       dayVoteChannel = supabase.channel('player-day-vote-$gameId');
@@ -432,23 +432,22 @@ class SupabaseServices {
     }
 
   Future<Map<int, int>> getPlayersDayVotes(int gameId) async {
-    //TODO tuaj nie zwraca danych (bo response != lista vote
-    //TODO jeżeli pominiem nulle a ktoś nie zagłosuje to pominie jego glos
     Map<int, int> votesMap = {};
 
     try {
       final response = await supabase
           .from('vote')
-          .select('day_vote')
+          .select('day_vote, player_id')
           .eq('game_id', gameId);
 
       List<dynamic> votesData = response;
 
-      int index = 0;
-
       for (var vote in votesData) {
         if (vote['day_vote'] != null) {
-          votesMap[index] = vote['day_vote'];
+          votesMap[vote['player_id']] = vote['day_vote'];
+        }
+        else {
+          votesMap[vote['player_id']] = -1;
         }
       }
 
@@ -507,6 +506,16 @@ class SupabaseServices {
             .eq('id', gameId);
       } catch (e) {
         print("Error updating gameplay voting': $e");
+      }
+    }
+
+    void updateDeadPlayer(int playerId) async {
+      try {
+        final response = await supabase.from('players')
+            .update({'is_dead': true})
+            .eq('id', playerId);
+      } catch (e) {
+        print("Error updating dead player $playerId': $e");
       }
     }
   }

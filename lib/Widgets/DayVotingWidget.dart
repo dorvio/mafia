@@ -38,7 +38,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
 
     alivePlayers = widget.players.getAlivePlayers();
     dayVotes = {
-      for (int i = 0; i < alivePlayers.length; i++) i: 0,
+      for (int i = 0; i < widget.players.getPlayerCount(); i++) widget.players.getIdByIndex(i): 0,
     };
   }
 
@@ -55,7 +55,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
 
     supabaseServices.subscribeToPlayerDayVote(
       widget.gameId,
-      alivePlayers.length,
+      widget.players.players,
           (Map<int, int> newVotes) {
         setState(() {
           dayVotes = newVotes;
@@ -94,7 +94,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
                         supabaseServices.updatePlayerDayVote(widget.playerId, null);
                       } else if(selectedId == -1){
                         onSelect(index);
-                        supabaseServices.updatePlayerDayVote(widget.playerId, index);
+                        supabaseServices.updatePlayerDayVote(widget.playerId, alivePlayers[index].getPlayerId());
                       }
                     },
                     style: FilledButton.styleFrom(
@@ -117,7 +117,8 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
                             ),
                           ),
                           Text(
-                            dayVotes[index].toString(),
+                            dayVotes[player.getPlayerId()].toString(),
+                            //TODO add count vote
                             style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
