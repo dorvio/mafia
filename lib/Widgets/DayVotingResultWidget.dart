@@ -99,7 +99,7 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 10),
                     ],
                   );
                 },
@@ -111,6 +111,7 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
   }
 
   int calculateDeadPlayer(Map<int, int> votesToCalculate) {
+    //TODO do uwzględnienia remis
     Map<int, int> frequencyMap = {};
 
     for (var value in votesToCalculate.values) {

@@ -347,10 +347,10 @@ class SupabaseServices {
     supabase.removeChannel(gameplayChannel);
   }
 
-  Future<void> subscribeToPlayerVoteMafia(int gameId, int alivePlayersCount,
+  Future<void> subscribeToPlayerVoteMafia(int gameId,  List<Player> players,
       Function(Map<int, int> dayVotes) onVoteChanged) async {
     if (nightVotes.isEmpty) {
-      nightVotes = {for (int i = 0; i < alivePlayersCount; i++) i: 0};
+      nightVotes = {for (int i = 0; i < players.length; i++) players[i].getPlayerId() : 0};
     }
 
     mafiaVoteChannel = supabase.channel('player-mafia-vote-$gameId');
@@ -389,47 +389,47 @@ class SupabaseServices {
     supabase.removeChannel(mafiaVoteChannel);
   }
 
-    Future<void> subscribeToPlayerDayVote(int gameId, List<Player> players,
-        Function(Map<int, int> dayVotes) onVoteChanged) async {
-      if (dayVotes.isEmpty) {
-        dayVotes = {for (int i = 0; i < players.length; i++) players[i].getPlayerId() : 0};
-      }
-
-      dayVoteChannel = supabase.channel('player-day-vote-$gameId');
-
-      dayVoteChannel.onPostgresChanges(
-        event: PostgresChangeEvent.update,
-        schema: 'public',
-        table: 'vote',
-        filter: PostgresChangeFilter(
-          type: PostgresChangeFilterType.eq,
-          column: 'game_id',
-          value: gameId,
-        ),
-        callback: (PostgresChangePayload payload) {
-          final newRecord = payload.newRecord;
-          final oldRecord = payload.oldRecord;
-
-          if (newRecord != null && newRecord['day_vote'] != null) {
-            final newVote = newRecord['day_vote'] as int;
-            dayVotes[newVote] = (dayVotes[newVote] ?? 0) + 1;
-          }
-
-          if (oldRecord != null && oldRecord['day_vote'] != null) {
-            final oldVote = oldRecord['day_vote'] as int;
-            dayVotes[oldVote] = (dayVotes[oldVote] ?? 0) - 1;
-          }
-
-          onVoteChanged(dayVotes);
-        },
-      );
-
-      dayVoteChannel.subscribe();
+  Future<void> subscribeToPlayerDayVote(int gameId, List<Player> players,
+      Function(Map<int, int> dayVotes) onVoteChanged) async {
+    if (dayVotes.isEmpty) {
+      dayVotes = {for (int i = 0; i < players.length; i++) players[i].getPlayerId() : 0};
     }
 
-    void unsubscribeToPlayerDayVote() {
-      supabase.removeChannel(dayVoteChannel);
-    }
+    dayVoteChannel = supabase.channel('player-day-vote-$gameId');
+
+    dayVoteChannel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'vote',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'game_id',
+        value: gameId,
+      ),
+      callback: (PostgresChangePayload payload) {
+        final newRecord = payload.newRecord;
+        final oldRecord = payload.oldRecord;
+
+        if (newRecord != null && newRecord['day_vote'] != null) {
+          final newVote = newRecord['day_vote'] as int;
+          dayVotes[newVote] = (dayVotes[newVote] ?? 0) + 1;
+        }
+
+        if (oldRecord != null && oldRecord['day_vote'] != null) {
+          final oldVote = oldRecord['day_vote'] as int;
+          dayVotes[oldVote] = (dayVotes[oldVote] ?? 0) - 1;
+        }
+
+        onVoteChanged(dayVotes);
+      },
+    );
+
+    dayVoteChannel.subscribe();
+  }
+
+  void unsubscribeToPlayerDayVote() {
+    supabase.removeChannel(dayVoteChannel);
+  }
 
   Future<Map<int, int>> getPlayersDayVotes(int gameId) async {
     Map<int, int> votesMap = {};
@@ -453,6 +453,32 @@ class SupabaseServices {
 
     } catch (e) {
       print("Error getting players' day votes: $e");
+    }
+    return votesMap;
+  }
+//TODO change to NightVoteList
+  Future<Map<int, int>> getPlayersNightVotes(int gameId) async {
+    Map<int, int> votesMap = {};
+
+    try {
+      final response = await supabase
+          .from('vote')
+          .select('night_vote, role_id')
+          .eq('game_id', gameId);
+
+      List<dynamic> votesData = response;
+
+      for (var vote in votesData) {
+        if (vote['night_vote'] != null) {
+          votesMap[vote['role_id']] = vote['night_vote'];
+        }
+        else {
+          votesMap[vote['role_id']] = -1;
+        }
+      }
+
+    } catch (e) {
+      print("Error getting players' night votes: $e");
     }
     return votesMap;
   }

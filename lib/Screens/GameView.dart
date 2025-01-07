@@ -74,122 +74,132 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
       }
     });
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      resizeToAvoidBottomInset : false,
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0, bottom: 0.0),
-              child: Align(
-                alignment: Alignment.topCenter,
+    return WillPopScope(
+      onWillPop: () async {
+        bool shouldExit = await showExitDialog();
+        return shouldExit;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        resizeToAvoidBottomInset : false,
+        body: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0, bottom: 0.0),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    "${player!.getPlayerRole()?.toUpperCase()}",
+                    style: GoogleFonts.shadowsIntoLight(
+                      textStyle: const TextStyle(
+                        fontSize: 50,
+                        color: ORANGE,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: player!.getPlayerRoleId() == 6,
                 child: Text(
-                  "${player!.getPlayerRole()?.toUpperCase()}",
-                  style: GoogleFonts.shadowsIntoLight(
-                    textStyle: const TextStyle(
-                      fontSize: 50,
+                    allPlayers.getMafiaNames(widget.playerId),
+                    style: const TextStyle(
                       color: ORANGE,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Visibility(
-              visible: player!.getPlayerRoleId() == 6,
-              child: Text(
-                  allPlayers.getMafiaNames(widget.playerId),
-                  style: const TextStyle(
-                    color: ORANGE,
-                    fontSize: 20,
-                  )
-              ),
-            ),
-            Expanded(
-                child: Wrapper(
-                    votingStart: votingStart,
-                    votingEnd: votingEnd,
-                    dayNightSwitch: dayNightSwitch,
-                    players: allPlayers,
-                    playerRoleId: player!.getPlayerRoleId(),
-                    playerId: widget.playerId,
-                    gameId: widget.gameId,
-                    isHost: widget.isHost,
-                ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Visibility(
-                    visible: widget.isHost,
-                    child:  dayNightSwitch ? ElevatedButton(
-                      onPressed: votingStart ? null : () {
-                        supabaseServices.updateVotingInGameplay(widget.gameId);
-                        supabaseServices.clearNightVote(widget.gameId);
-                      },
-                      child: const Text(
-                        "Miasto idzie spać",
-                      ),
-                    )
-                        : ElevatedButton(
-                      onPressed: votingStart ? null : () {
-                        supabaseServices.updateVotingInGameplay(widget.gameId);
-                        supabaseServices.clearDayVote(widget.gameId);
-                        // startDayVoting();
-                      },
-                      child: const Text(
-                        "Głosowanie",
-                      ),
-                    ),
-                  ),
-                  CircularCountDownTimer(
-                    controller: _controller,
-                    width: 100,
-                    height: 100,
-                    duration: votingTime * 60,
-                    isReverse: true,
-                    isReverseAnimation: true,
-                    autoStart: false,
-                    fillColor: ORANGE,
-                    ringColor: Colors.white12,
-                    textStyle: const TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: ORANGE,
-                    ),
-                    timeFormatterFunction: (defaultFormatterFunction, duration) {
-                      return "${duration.inMinutes.toStringAsFixed(0).padLeft(2,'0')}"
-                          " : ${(duration.inSeconds % 60).toStringAsFixed(0).padLeft(2,'0')}";
-                    },
-                    onComplete: onVotingEnd,
-                  ),
-                ],
+                    )
+                ),
               ),
-            ),
-        ],
+              Expanded(
+                  child: Wrapper(
+                      votingStart: votingStart,
+                      votingEnd: votingEnd,
+                      dayNightSwitch: dayNightSwitch,
+                      players: allPlayers,
+                      playerRoleId: player!.getPlayerRoleId(),
+                      playerId: widget.playerId,
+                      gameId: widget.gameId,
+                      isHost: widget.isHost,
+                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Visibility(
+                      visible: widget.isHost,
+                      child:  dayNightSwitch ? ElevatedButton(
+                        onPressed: votingStart ? null : () {
+                          supabaseServices.updateVotingInGameplay(widget.gameId);
+                          supabaseServices.clearNightVote(widget.gameId);
+                        },
+                        child: const Text(
+                          "Miasto idzie spać",
+                        ),
+                      )
+                          : ElevatedButton(
+                        onPressed: votingStart ? null : () {
+                          supabaseServices.updateVotingInGameplay(widget.gameId);
+                          supabaseServices.clearDayVote(widget.gameId);
+                          // startDayVoting();
+                        },
+                        child: const Text(
+                          "Głosowanie",
+                        ),
+                      ),
+                    ),
+                    CircularCountDownTimer(
+                      controller: _controller,
+                      width: 100,
+                      height: 100,
+                      duration: votingTime * 60,
+                      isReverse: true,
+                      isReverseAnimation: true,
+                      autoStart: false,
+                      fillColor: ORANGE,
+                      ringColor: Colors.white12,
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: ORANGE,
+                      ),
+                      timeFormatterFunction: (defaultFormatterFunction, duration) {
+                        return "${duration.inMinutes.toStringAsFixed(0).padLeft(2,'0')}"
+                            " : ${(duration.inSeconds % 60).toStringAsFixed(0).padLeft(2,'0')}";
+                      },
+                      onComplete: onVotingEnd,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          ),
         ),
       ),
     );
   }
 
-  void startNightVoting(){
+  void startNightVoting() async {
+    List<Player> fetchedPlayers = await supabaseServices.getAllPlayerData(widget.gameId);
     _controller.start();
     setState(() {
       votingStart = true;
+      allPlayers = PlayerList(players: fetchedPlayers);
     });
   }
-  void startDayVoting(){
+  void startDayVoting() async {
+    List<Player> fetchedPlayers = await supabaseServices.getAllPlayerData(widget.gameId);
     _controller.start();
     setState(() {
       votingStart = true;
+      allPlayers = PlayerList(players: fetchedPlayers);
     });
   }
 
-  void onVotingEnd(){
+  void onVotingEnd() {
     setState(() {
       votingStart = false;
       votingEnd = true;
@@ -198,6 +208,56 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
     if(widget.isHost){
       supabaseServices.updateVotingInGameplay(widget.gameId);
     }
+  }
+
+  Future<bool> showExitDialog() async {
+    bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text(
+            'Czy na pewno chcesz opuścić grę?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            "Po wyjściu powrót do gry nie będzie możliwy.",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: ORANGE,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+              ),
+              child: const Text('TAK'),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: ORANGE,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+              ),
+              child: const Text('NIE'),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
   }
 
   //TODO logika gry, zabijanie, ratowanie i cale to gówno

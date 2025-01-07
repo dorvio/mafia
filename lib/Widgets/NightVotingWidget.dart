@@ -47,22 +47,21 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
   void initState() {
     alivePlayers = widget.players.getAlivePlayers();
     nightVotes = {
-      for (int i = 0; i < alivePlayers.length; i++) i: 0,
+      for (int i = 0; i < widget.players.getPlayerCount(); i++) widget.players.getIdByIndex(i): 0,
     };
     super.initState();
   }
 
   @override
   void dispose(){
-    supabaseServices.updatePlayerNightVote(widget.playerId, selectedId);
-    supabaseServices.unsubscribeToPlayerVoteMafia();
+    widget.playerRoleId == 6 ? supabaseServices.unsubscribeToPlayerVoteMafia() :
+    supabaseServices.updatePlayerNightVote(widget.playerId, alivePlayers[selectedId].getPlayerId());
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
-
 
     if(widget.playerRoleId == 5 || widget.playerRoleId == 7){
       //Burmistrz, Wieśniak
@@ -138,7 +137,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
 
       supabaseServices.subscribeToPlayerVoteMafia(
         widget.gameId,
-        alivePlayers.length,
+        widget.players.players,
             (Map<int, int> newVotes) {
           setState(() {
             nightVotes = newVotes;
@@ -177,7 +176,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
                           supabaseServices.updatePlayerNightVote(widget.playerId, null);
                         } else if(selectedId == -1){
                           onSelect(index);
-                          supabaseServices.updatePlayerNightVote(widget.playerId, index);
+                          supabaseServices.updatePlayerNightVote(widget.playerId, player.getPlayerId());
                         }
                       },
                       style: FilledButton.styleFrom(
@@ -200,7 +199,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
                               ),
                             ),
                             Text(
-                              nightVotes[index].toString(),
+                              nightVotes[player.getPlayerId()].toString(),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,

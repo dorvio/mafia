@@ -94,7 +94,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
                         supabaseServices.updatePlayerDayVote(widget.playerId, null);
                       } else if(selectedId == -1){
                         onSelect(index);
-                        supabaseServices.updatePlayerDayVote(widget.playerId, alivePlayers[index].getPlayerId());
+                        supabaseServices.updatePlayerDayVote(widget.playerId, player.getPlayerId());
                       }
                     },
                     style: FilledButton.styleFrom(
@@ -118,7 +118,6 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
                           ),
                           Text(
                             dayVotes[player.getPlayerId()].toString(),
-                            //TODO add count vote
                             style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,

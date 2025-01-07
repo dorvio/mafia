@@ -37,8 +37,11 @@ class PlayerList {
     return players.where((player) => player.getIsDead() == true).toList();
   }
 
-  List<Player> getAlivePlayers(){
-    return players.where((player) => player.getIsDead() == false).toList();
+  List<Player> getAlivePlayers() {
+    return players
+        .where((player) => player.getIsDead() == false)
+        .toList()
+      ..sort((a, b) => a.playerId.compareTo(b.playerId));
   }
 
   int getIdByIndex(int index){
