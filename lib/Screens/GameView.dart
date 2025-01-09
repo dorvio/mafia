@@ -1,7 +1,6 @@
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mafia/Widgets/NightVotingWidget.dart';
 import 'package:mafia/Widgets/Wrapper.dart';
 import 'package:mafia/constants.dart';
 

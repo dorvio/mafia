@@ -1,11 +1,8 @@
-import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/Classes/PlayerList.dart';
 import 'package:mafia/Widgets/DayVotingResultWidget.dart';
-import 'package:mafia/constants.dart';
+import 'package:mafia/Widgets/NightVotingResultWidget.dart';
 
-import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
 import 'DayVotingWidget.dart';
 import 'NightVotingWidget.dart';
@@ -44,7 +41,6 @@ class _WrapperState extends State<Wrapper> {
 
   @override
   Widget build(BuildContext context) {
-    //TODO dodać wyświetlanie wyników w noc
     if(widget.dayNightSwitch && widget.votingStart){
       return NightVotingWidget(
           players: widget.players,
@@ -66,7 +62,12 @@ class _WrapperState extends State<Wrapper> {
           gameId: widget.gameId,
       );
     } else if(!widget.dayNightSwitch && widget.votingEnd){
-      return Text("Tutaj wyniki z nocy");
+      return NightVotingResultWidget(
+        players: widget.players,
+        playerRoleId: widget.playerRoleId,
+        gameId: widget.gameId,
+        isHost : widget.isHost,
+      );
     } else {
       return const SizedBox();
     }

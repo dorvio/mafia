@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:mafia/Classes/Game.dart';
+import 'package:mafia/Classes/NightVote.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../Classes/Player.dart';
@@ -456,31 +457,23 @@ class SupabaseServices {
     }
     return votesMap;
   }
-//TODO change to NightVoteList
-  Future<Map<int, int>> getPlayersNightVotes(int gameId) async {
-    Map<int, int> votesMap = {};
 
-    try {
-      final response = await supabase
-          .from('vote')
-          .select('night_vote, role_id')
-          .eq('game_id', gameId);
+  Future<List<NightVote>> getPlayersNightVotes(int gameId) async {
+    final response = await supabase
+        .from('vote')
+        .select('night_vote, role_id, player_id')
+        .eq('game_id', gameId);
 
-      List<dynamic> votesData = response;
-
-      for (var vote in votesData) {
-        if (vote['night_vote'] != null) {
-          votesMap[vote['role_id']] = vote['night_vote'];
-        }
-        else {
-          votesMap[vote['role_id']] = -1;
-        }
-      }
-
-    } catch (e) {
-      print("Error getting players' night votes: $e");
-    }
-    return votesMap;
+    List<NightVote> nightVotes = List<NightVote>.from(
+      response.map((voteData) =>
+          NightVote(
+              playerId: voteData['player_id'],
+              roleId: voteData['role_id'],
+              gameId: gameId,
+              vote: voteData['night_vote'] ?? -1
+          )),
+    );
+    return nightVotes;
   }
 
 
@@ -520,7 +513,7 @@ class SupabaseServices {
             .update({'night_vote': null})
             .eq('game_id', gameId);
       } catch (e) {
-        print("Error clearing day votes': $e");
+        print("Error clearing night votes': $e");
       }
     }
 
@@ -543,5 +536,17 @@ class SupabaseServices {
       } catch (e) {
         print("Error updating dead player $playerId': $e");
       }
+    }
+
+    Future<List<int>> getAlivePlayersId(int gameId) async {
+      final response = await supabase
+          .from('players')
+          .select('id, is_dead')
+          .eq('game_id', gameId);
+
+      return (response as List)
+          .where((player) => player['is_dead'] == false)
+          .map<int>((player) => player['id'] as int)
+          .toList();
     }
   }

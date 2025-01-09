@@ -51,7 +51,7 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
     List<Player> alivePlayers = widget.players.getAlivePlayers();
 
     if (isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,

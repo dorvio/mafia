@@ -1,4 +1,5 @@
 import 'package:mafia/Classes/NightVote.dart';
+import '../Services/SupabaseServices.dart';
 
 class NightVoteList {
   List<NightVote> nightVotes;
@@ -7,35 +8,32 @@ class NightVoteList {
     required this.nightVotes,
   });
 
-  int getMafiaVote(int alivePlayerCount){
+  Future<int> getMafiaVote() async {
+    //TODO sprawdzenie głosu obrońcy
     List<NightVote> mafiaVotes = nightVotes.where((vote) => vote.getRoleId() == 6).toList();
-    if(mafiaVotes.length == 1){
-      if(mafiaVotes[0].getPlayerId() == getAlcoholicVote()){
-        return getDrunkVote(alivePlayerCount, mafiaVotes[0].getVote());
-      }
-      return mafiaVotes[0].getVote();
-    } else {
-      int mafiaVote = calculatePlayerToKill(mafiaVotes);
-      if(mafiaVotes.any((vote) => vote.getPlayerId() == getAlcoholicVote())){
-        return getDrunkVote(alivePlayerCount, mafiaVote);
-      } else{
-        return mafiaVote;
-      }
+    int mafiaVote = calculatePlayerToKill(mafiaVotes);
+    if(mafiaVotes.any((vote) => vote.getPlayerId() == getAlcoholicVote()) && mafiaVote != -1){
+      int drunkVote = await getDrunkVote(mafiaVote);
+      mafiaVote = drunkVote;
     }
+    int defenderVote = await getDefenderVote();
+    return mafiaVote == defenderVote ? -1 : mafiaVote;
   }
 
-  int getDefenderVote(int alivePlayerCount){
+  Future<int> getDefenderVote() async {
     NightVote defender = nightVotes.firstWhere((vote) => vote.getRoleId() == 1);
-    if(defender.getPlayerId() == getAlcoholicVote()){
-      return getDrunkVote(alivePlayerCount, defender.getVote());
+    if(defender.getPlayerId() == getAlcoholicVote() && defender.getVote() != -1){
+      int drunkVote = await getDrunkVote(defender.getVote());
+      return drunkVote;
     }
     return defender.getVote();
   }
 
-  int getProsecutorVote(int alivePlayerCount){
+  Future<int> getProsecutorVote() async {
     NightVote prosecutor = nightVotes.firstWhere((vote) => vote.getRoleId() == 2);
-    if(prosecutor.getPlayerId() == getAlcoholicVote()){
-      return getDrunkVote(alivePlayerCount, prosecutor.getVote());
+    if(prosecutor.getPlayerId() == getAlcoholicVote() && prosecutor.getVote() != -1){
+      int drunkVote = await getDrunkVote(prosecutor.getVote());
+      return drunkVote;
     }
     return prosecutor.getVote();
   }
@@ -44,38 +42,44 @@ class NightVoteList {
     return nightVotes.firstWhere((vote) => vote.getRoleId() == 3).getVote();
   }
 
-  int getDrunkVote(int alivePlayerCount, int vote){
-    //TODO dodać uwzględnienie martych osób - przesuwać sie po liście id
-    int drunkVote = (vote + 3) % alivePlayerCount;
-    return drunkVote == 0 ? alivePlayerCount : drunkVote;
+  Future<int> getDrunkVote(int vote) async {
+    SupabaseServices supabaseServices = SupabaseServices();
+    List<int> alivePlayersIds = await supabaseServices.getAlivePlayersId(nightVotes[0].getGameId());
+    alivePlayersIds.sort();
+    int startIndex = alivePlayersIds.indexOf(vote);
+    int drunkIndex = (startIndex + 4) % alivePlayersIds.length;
+    return drunkIndex;
   }
 
-  int calculatePlayerToKill(List<NightVote> mafiaVotes){
+  int calculatePlayerToKill(List<NightVote> mafiaVotes) {
     Map<int, int> voteCount = {};
 
     for (var vote in mafiaVotes) {
       voteCount[vote.getVote()] = (voteCount[vote.getVote()] ?? 0) + 1;
     }
 
-    int? mostFrequentVote;
-    int maxCount = 0;
-    int maxCountOccurrences = 0;
+    List<MapEntry<int, int>> sortedVotes = voteCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-    voteCount.forEach((vote, count) {
-      if (count > maxCount) {
-        maxCount = count;
-        mostFrequentVote = vote;
-        maxCountOccurrences = 1;
-      } else if (count == maxCount) {
-        maxCountOccurrences++;
-      }
-    });
+    if (sortedVotes.isEmpty) {
+      return -1;
+    }
+
+    int mostFrequentVote = sortedVotes.first.key;
+    int maxCount = sortedVotes.first.value;
+
+
+    int maxCountOccurrences = sortedVotes.where((entry) => entry.value == maxCount).length;
 
     if (maxCountOccurrences > 1) {
       return -1;
     }
 
-    return mostFrequentVote!;
+    if (mostFrequentVote == -1 && sortedVotes.length > 1) {
+      mostFrequentVote = sortedVotes[1].key;
+    }
+
+    return mostFrequentVote;
   }
 
 }

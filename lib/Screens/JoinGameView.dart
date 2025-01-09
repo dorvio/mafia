@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mafia/main.dart';
 import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
 import '../Widgets/CustomTextFormField.dart';

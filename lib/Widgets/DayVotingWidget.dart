@@ -78,7 +78,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
         ),
         Expanded(
           child: Padding(
-            padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+            padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
             child: ListView.builder(
               padding: EdgeInsets.zero,
               itemCount: alivePlayers.length,

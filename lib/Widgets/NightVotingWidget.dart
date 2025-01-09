@@ -98,7 +98,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
             ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+                padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
                 child: deadPlayers.isEmpty ?
                 const Text("Jeszcze nikt nie umarł",
                   style: TextStyle(
@@ -160,7 +160,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+              padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: alivePlayers.length,
@@ -234,7 +234,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+              padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: alivePlayers.length,

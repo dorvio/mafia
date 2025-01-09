@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/Screens/GameView.dart';
 import 'package:mafia/Services/SupabaseServices.dart';
 import '../Classes/Game.dart';
-import '../Classes/Player.dart';
 import '../Widgets/CustomTextFormField.dart';
 import 'package:number_picker/number_picker.dart';
 import 'package:multiselect/multiselect.dart';
