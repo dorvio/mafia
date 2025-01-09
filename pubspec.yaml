@@ -43,6 +43,7 @@ dependencies:
   shared_preferences: ^2.3.3
   wakelock_plus: ^1.2.8
   circular_countdown_timer: ^0.2.4
+  flutter_svg: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,7 @@ flutter:
 
   assets:
     - assets/images/mafia_guy.png
+    - assets/icons/skull.svg
     - assets/animations/mafia_animation.json
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

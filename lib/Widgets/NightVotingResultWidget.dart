@@ -8,6 +8,7 @@ import '../constants.dart';
 
 class NightVotingResultWidget extends StatefulWidget {
   final PlayerList players;
+  final int playerId;
   final int playerRoleId;
   final int gameId;
   final bool isHost;
@@ -16,6 +17,7 @@ class NightVotingResultWidget extends StatefulWidget {
   const NightVotingResultWidget({
     Key? key,
     required this.players,
+    required this.playerId,
     required this.playerRoleId,
     required this.gameId,
     required this.isHost,
@@ -86,11 +88,13 @@ class _NightVotingResultWidgetState extends State<NightVotingResultWidget> {
         Expanded(
           child: Center(
             child: Visibility(
-              visible: widget.playerRoleId == 2,
+              visible: widget.playerRoleId == 2 && !widget.players.getPlayerById(widget.playerId).getIsDead(),
                 child: Text(
-                  widget.players.checkIfPlayerIsMafia(prosecutorVote) ?
-                    "Gracz ${widget.players.getPlayerNameById(prosecutorVote)} jest w mafii." :
-                    "Gracz ${widget.players.getPlayerNameById(prosecutorVote)} nie jest w mafii.",
+                  prosecutorVote == -1
+                      ? "Prokurator nie oddał głosu."
+                      : widget.players.checkIfPlayerIsMafia(prosecutorVote)
+                      ? "Gracz ${widget.players.getPlayerNameById(prosecutorVote)} jest w mafii."
+                      : "Gracz ${widget.players.getPlayerNameById(prosecutorVote)} nie jest w mafii.",
                   style: const TextStyle(
                     fontSize: 20,
                     color: Colors.white,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mafia/Classes/PlayerList.dart';
 import 'package:mafia/constants.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 import '../Classes/Player.dart';
 import '../Services/SupabaseServices.dart';
@@ -62,8 +64,9 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
 
   @override
   Widget build(BuildContext context) {
+    bool isPlayerDead = widget.players.getPlayerById(widget.playerId).getIsDead();
 
-    if(widget.playerRoleId == 5 || widget.playerRoleId == 7){
+    if ((widget.playerRoleId == 5 || widget.playerRoleId == 7) && !isPlayerDead){
       //Burmistrz, Wieśniak
       return Column(
           children: [
@@ -80,7 +83,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
           ),
         ]
       );
-    } else if(widget.playerRoleId == 4) {
+    } else if(widget.playerRoleId == 4 && !isPlayerDead) {
       //Grabarz
       List<Player> deadPlayers = widget.players.getDeadPlayers();
       return Column(
@@ -132,7 +135,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
             ),
           ]
       );
-    } else if(widget.playerRoleId == 6) {
+    } else if(widget.playerRoleId == 6 && !isPlayerDead) {
       //Mafia
 
       supabaseServices.subscribeToPlayerVoteMafia(
@@ -217,7 +220,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
           ),
         ],
       );
-    } else {
+    } else if((widget.playerRoleId == 1 || widget.playerRoleId == 2 || widget.playerRoleId == 3) && !isPlayerDead) {
       //Obrońca, Prokurator, Bimbrownik
       return Column(
         children: [
@@ -276,6 +279,71 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
           ),
         ],
       );
+    } else if (isPlayerDead){
+      return Column(
+        children: [
+          const SizedBox(height: 30),
+          Text(
+            "Role wszystkich graczy:",
+            style: GoogleFonts.aboreto(
+              textStyle: const TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 5, left: 20, right: 20, bottom: 10),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: widget.players.getPlayerCount(),
+                itemBuilder: (context, index) {
+                  final player = widget.players.players[index];
+                  return Column(
+                    children: [
+                      Container(
+                        color: ORANGE,
+                        padding: const EdgeInsets.symmetric(vertical: 5.0),
+                        width: double.infinity,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                               "${player.getPlayerName()} posiada rolę: ${player.getPlayerRole()}",
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                ),
+                              ),
+                              Visibility(
+                                visible: player.getIsDead(),
+                                child: SvgPicture.asset(
+                                  'assets/icons/skull.svg',
+                                  height: 25,
+                                  width: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return const SizedBox();
     }
   }
 

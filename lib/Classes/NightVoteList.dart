@@ -9,19 +9,22 @@ class NightVoteList {
   });
 
   Future<int> getMafiaVote() async {
-    //TODO sprawdzenie głosu obrońcy
-    List<NightVote> mafiaVotes = nightVotes.where((vote) => vote.getRoleId() == 6).toList();
-    int mafiaVote = calculatePlayerToKill(mafiaVotes);
-    if(mafiaVotes.any((vote) => vote.getPlayerId() == getAlcoholicVote()) && mafiaVote != -1){
-      int drunkVote = await getDrunkVote(mafiaVote);
-      mafiaVote = drunkVote;
+    try{
+      List<NightVote> mafiaVotes = nightVotes.where((vote) => vote.getRoleId() == 6).toList();
+      int mafiaVote = calculatePlayerToKill(mafiaVotes);
+      if(mafiaVotes.any((vote) => vote.getPlayerId() == getAlcoholicVote()) && mafiaVote != -1){
+        int drunkVote = await getDrunkVote(mafiaVote);
+        mafiaVote = drunkVote;
+      }
+      int defenderVote = await getDefenderVote();
+      return mafiaVote == defenderVote ? -1 : mafiaVote;
+    } catch(e){
+      return -1;
     }
-    int defenderVote = await getDefenderVote();
-    return mafiaVote == defenderVote ? -1 : mafiaVote;
   }
 
   Future<int> getDefenderVote() async {
-    NightVote defender = nightVotes.firstWhere((vote) => vote.getRoleId() == 1);
+    NightVote? defender = nightVotes.firstWhere((vote) => vote.getRoleId() == 1, orElse: () => NightVote(playerId: -1, roleId: -1, gameId: -1, vote: -1));
     if(defender.getPlayerId() == getAlcoholicVote() && defender.getVote() != -1){
       int drunkVote = await getDrunkVote(defender.getVote());
       return drunkVote;
@@ -30,7 +33,7 @@ class NightVoteList {
   }
 
   Future<int> getProsecutorVote() async {
-    NightVote prosecutor = nightVotes.firstWhere((vote) => vote.getRoleId() == 2);
+    NightVote prosecutor = nightVotes.firstWhere((vote) => vote.getRoleId() == 2, orElse: () => NightVote(playerId: -1, roleId: -1, gameId: -1, vote: -1));
     if(prosecutor.getPlayerId() == getAlcoholicVote() && prosecutor.getVote() != -1){
       int drunkVote = await getDrunkVote(prosecutor.getVote());
       return drunkVote;
@@ -39,7 +42,7 @@ class NightVoteList {
   }
 
   int getAlcoholicVote(){
-    return nightVotes.firstWhere((vote) => vote.getRoleId() == 3).getVote();
+    return nightVotes.firstWhere((vote) => vote.getRoleId() == 3, orElse: () => NightVote(playerId: -1, roleId: -1, gameId: -1, vote: -1)).getVote();
   }
 
   Future<int> getDrunkVote(int vote) async {

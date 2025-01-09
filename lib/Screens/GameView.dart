@@ -90,7 +90,7 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Text(
-                    "${player!.getPlayerRole()?.toUpperCase()}",
+                    player!.getIsDead() ? "Martwy" : "${player!.getPlayerRole()?.toUpperCase()}",
                     style: GoogleFonts.shadowsIntoLight(
                       textStyle: const TextStyle(
                         fontSize: 50,
@@ -258,6 +258,4 @@ class _GameViewState extends State<GameView> with SingleTickerProviderStateMixin
 
     return result ?? false;
   }
-
-  //TODO logika gry, zabijanie, ratowanie i cale to gówno
 }

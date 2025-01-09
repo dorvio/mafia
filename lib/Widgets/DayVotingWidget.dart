@@ -52,6 +52,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
   @override
   Widget build(BuildContext context) {
     List<Player> alivePlayers = widget.players.getAlivePlayers();
+    bool isPlayerDead = widget.players.getPlayerById(widget.playerId).getIsDead();
 
     supabaseServices.subscribeToPlayerDayVote(
       widget.gameId,
@@ -88,7 +89,7 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () {
+                    onPressed: isPlayerDead ? null : () {
                       if(selectedId == index){
                         onDeselect(index);
                         supabaseServices.updatePlayerDayVote(widget.playerId, null);

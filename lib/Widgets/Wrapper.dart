@@ -64,6 +64,7 @@ class _WrapperState extends State<Wrapper> {
     } else if(!widget.dayNightSwitch && widget.votingEnd){
       return NightVotingResultWidget(
         players: widget.players,
+        playerId: widget.playerId,
         playerRoleId: widget.playerRoleId,
         gameId: widget.gameId,
         isHost : widget.isHost,
