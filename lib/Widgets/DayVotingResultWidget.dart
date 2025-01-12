@@ -3,6 +3,7 @@ import 'package:mafia/Classes/PlayerList.dart';
 import 'package:mafia/constants.dart';
 
 import '../Classes/Player.dart';
+import '../Screens/EndGameView.dart';
 import '../Services/SupabaseServices.dart';
 
 class DayVotingResultWidget extends StatefulWidget {
@@ -42,11 +43,24 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
       deadPlayerId = id;
       isLoading = false;
     });
+    if(widget.isHost && id != -1){
+      await supabaseServices.updateDeadPlayer(id);
+      widget.players.updateDeadPlayerById(id);
+      int endGame = widget.players.calculateEndGame();
+      endGame != 0 ? supabaseServices.updateGameStatus(widget.gameId, endGame + 1) : null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     List<Player> alivePlayers = widget.players.getAlivePlayers();
+
+    supabaseServices.subscribeToGamesStatus(widget.gameId, (gameStatus) async {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => EndGameView(endGameResult: gameStatus)),
+      );
+    });
 
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -109,32 +123,32 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
   }
 
   int calculateDeadPlayer(Map<int, int> votesToCalculate) {
-    //TODO do uwzględnienia remis
     Map<int, int> frequencyMap = {};
 
     for (var value in votesToCalculate.values) {
-      if (value != -1) {
-        frequencyMap[value] = (frequencyMap[value] ?? 0) + 1;
-      }
+      frequencyMap[value] = (frequencyMap[value] ?? 0) + 1;
     }
+
+    List<MapEntry<int, int>> sortedVotes = frequencyMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     if (frequencyMap.isEmpty) {
       return -1;
     }
-    int mostFrequentValue = -1;
-    int maxFrequency = 0;
+    int mostFrequentVote = sortedVotes.first.key;
+    int maxCount = sortedVotes.first.value;
 
-    frequencyMap.forEach((key, value) {
-      if (value > maxFrequency) {
-        maxFrequency = value;
-        mostFrequentValue = key;
-      }
-    });
+    int maxCountOccurrences = sortedVotes.where((entry) => entry.value == maxCount).length;
 
-    if(widget.isHost){
-      mostFrequentValue == -1 ? null : supabaseServices.updateDeadPlayer(mostFrequentValue);
+    if (maxCountOccurrences > 1) {
+      return -1;
     }
-    return mostFrequentValue;
+
+    if (mostFrequentVote == -1 && sortedVotes.length > 1) {
+      mostFrequentVote = sortedVotes[1].key;
+    }
+
+    return mostFrequentVote;
   }
 
 }

@@ -48,4 +48,36 @@ class PlayerList {
     return players[index].playerId;
   }
 
+  void updateDeadPlayerById(int id){
+    Player deadPlayer = players.firstWhere((player) => player.getPlayerId() == id);
+    int deadPlayerIndexplayers = players.indexOf(deadPlayer);
+    players[deadPlayerIndexplayers].isDead = true;
+  }
+
+  int getAliveCityPlayersCount(){
+    return players
+        .where((player) => player.getIsDead() == false && player.getPlayerRoleId() != 6)
+        .toList().length;
+  }
+
+  int getMafiaPlayersCount(){
+    return players
+        .where((player) =>  player.getIsDead() == false && player.getPlayerRoleId() == 6)
+        .toList().length;
+  }
+
+  int calculateEndGame(){
+    int cityCount = getAliveCityPlayersCount();
+    int mafiaCount = getMafiaPlayersCount();
+    if(mafiaCount >= cityCount){
+      return 1; //mafia wins
+    }
+    else if(mafiaCount == 0){
+      return 2; //city wins
+    }
+    else {
+      return 0; //game continue
+    }
+  }
+
 }

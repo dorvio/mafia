@@ -225,7 +225,6 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                   child: const Text('Cofnij'),
                   onPressed: () async {
                     supabaseServices.unsubscribeFromPlayerChanges();
-                    supabaseServices.unsubscriveAllChanels();
                     await supabaseServices.deleteGame(game!.gameId);
                     Navigator.pop(context);
                   },

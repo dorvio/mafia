@@ -528,7 +528,7 @@ class SupabaseServices {
       }
     }
 
-    void updateDeadPlayer(int playerId) async {
+    Future<void> updateDeadPlayer(int playerId) async {
       try {
         final response = await supabase.from('players')
             .update({'is_dead': true})

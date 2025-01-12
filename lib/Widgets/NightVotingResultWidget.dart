@@ -3,6 +3,7 @@ import 'package:mafia/Classes/NightVote.dart';
 import 'package:mafia/Classes/NightVoteList.dart';
 import 'package:mafia/Classes/PlayerList.dart';
 
+import '../Screens/EndGameView.dart';
 import '../Services/SupabaseServices.dart';
 import '../constants.dart';
 
@@ -40,13 +41,6 @@ class _NightVotingResultWidgetState extends State<NightVotingResultWidget> {
     super.initState();
   }
 
-  @override
-  void dispose(){
-    (widget.isHost && mafiaVote != -1) ? supabaseServices.updateDeadPlayer(mafiaVote) : null;
-
-    super.dispose();
-  }
-
   Future<void> _getData() async {
     List<NightVote> fetchVotes = await supabaseServices.getPlayersNightVotes(widget.gameId);
     NightVoteList fetchedVotesList = NightVoteList(nightVotes: fetchVotes);
@@ -58,10 +52,23 @@ class _NightVotingResultWidgetState extends State<NightVotingResultWidget> {
       mafiaVote = mVote;
       isLoading = false;
     });
+    if(widget.isHost && mVote != -1){
+      await supabaseServices.updateDeadPlayer(mVote);
+      widget.players.updateDeadPlayerById(mVote);
+      int endGame = widget.players.calculateEndGame();
+      endGame != 0 ? supabaseServices.updateGameStatus(widget.gameId, endGame + 1) : null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+
+    supabaseServices.subscribeToGamesStatus(widget.gameId, (gameStatus) async {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => EndGameView(endGameResult: gameStatus)),
+      );
+    });
 
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
