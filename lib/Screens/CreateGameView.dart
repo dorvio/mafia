@@ -123,7 +123,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         if (game == null) {
-                          game = await supabaseServices.createGame();
+                          game = await supabaseServices.createGame(pauseTime);
                           if (game != null) {
                             playerId = await supabaseServices.createPlayer(playerName, game!.gameId);
                             _showLobbyDialog();

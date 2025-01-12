@@ -44,7 +44,6 @@ class _DayVotingWidgetState extends State<DayVotingWidget> {
 
   @override
   void dispose(){
-    supabaseServices.updatePlayerDayVote(widget.playerId, selectedId);
     supabaseServices.unsubscribeToPlayerDayVote();
     super.dispose();
   }

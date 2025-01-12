@@ -20,10 +20,11 @@ class SupabaseServices {
   Map<int, int> dayVotes = {};
   Map<int, int> nightVotes = {};
 
-  Future<Game?> createGame() async {
+  Future<Game?> createGame(int time) async {
     try {
       final response = await supabase.from('games').insert({
         'game_code': generateGameCode(),
+        'voting_time': time
       }).select().single();
       Game game = new Game(gameId: response['id'],
           gameCode: response['game_code'],
