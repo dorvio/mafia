@@ -22,7 +22,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
   int playerId = -1;
   List<String> roles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
   List<IconData> roleIcons = [Icons.sports_bar, Icons.person_search_rounded, Icons.healing, Icons.museum, Icons.church];
-  int pauseTime = 0;
+  int pauseTime = 2;
   List<String> selectedRoles = [];
   SupabaseServices supabaseServices = SupabaseServices();
   Game? game;
@@ -112,7 +112,9 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
                 textColor: Colors.white,
                 iconColor: Colors.white,
                 onValueChange: (newValue) {
-                  pauseTime = newValue;
+                  setState(() {
+                    pauseTime = newValue;
+                  });
                 },
               ),
               SizedBox(height: 30),
