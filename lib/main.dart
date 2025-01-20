@@ -1,10 +1,24 @@
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:mafia/Screens/MenuView.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-void main() {
-  runApp(const MyApp());
+const supabaseUrl = 'https://gpxewdudbpwmjufhkkyx.supabase.co';
+const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  WakelockPlus.enable();
+
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -30,6 +44,35 @@ class MyApp extends StatelessWidget {
             textStyle: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+            ),
+          ).copyWith(
+            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                  (states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return ORANGE.brighten(0.25);
+                }
+                return ORANGE;
+              },
+            ),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                  (Set<MaterialState> states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return ORANGE; // Kolor tła dla disabled
+                }
+                return Colors.black;
+              },
+            ),
+            foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                  (Set<MaterialState> states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return Colors.black;
+                }
+                return Colors.white;
+              },
             ),
           ),
         ),
