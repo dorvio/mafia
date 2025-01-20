@@ -240,7 +240,6 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
   }
 
   List<int> getRolesId() {
-    List<int> list = [1, 2, 3, 4, 5];
     Map<String, int> roleMapping = {
       "Obrońca": 1,
       "Prokurator": 2,
@@ -251,9 +250,8 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
 
     List<int> selectedRolesIds = selectedRoles.map((role) => roleMapping[role]!).toList();
 
-    list.removeWhere((id) => selectedRolesIds.contains(id));
 
-    return list;
+    return selectedRolesIds;
   }
 
 }

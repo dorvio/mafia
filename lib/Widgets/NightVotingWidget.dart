@@ -57,7 +57,7 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
   @override
   void dispose(){
     widget.playerRoleId == 6 ? supabaseServices.unsubscribeToPlayerVoteMafia() :
-    supabaseServices.updatePlayerNightVote(widget.playerId, alivePlayers[selectedId].getPlayerId());
+    null;
 
     super.dispose();
   }
@@ -249,8 +249,10 @@ class _NightVotingWidgetState extends State<NightVotingWidget> {
                     child: FilledButton(
                       onPressed: () {
                         if(selectedId == index){
+                          supabaseServices.updatePlayerNightVote(widget.playerId, null);
                           onDeselect(index);
                         } else if(selectedId == -1){
+                          supabaseServices.updatePlayerNightVote(widget.playerId, player.getPlayerId());
                           onSelect(index);
                         }
                       },

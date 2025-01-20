@@ -51,8 +51,8 @@ class MenuView extends StatelessWidget {
 void goToRulesView(BuildContext context) {
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => RulesView()),
-    //MaterialPageRoute(builder: (context) => GameView(playerId: 1, isHost: true, gameId: 3)),
+    // MaterialPageRoute(builder: (context) => RulesView()),
+    MaterialPageRoute(builder: (context) => GameView(playerId: 1, isHost: true, gameId: 3)),
   );
 }
 

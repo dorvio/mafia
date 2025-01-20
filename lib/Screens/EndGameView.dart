@@ -24,14 +24,16 @@ class EndGameView extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'KONIEC GRY',
-                      style: GoogleFonts.creepster(
-                        textStyle: const TextStyle(
-                          color: ORANGE,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 70,
-                          letterSpacing: 10,
+                    Center(
+                      child: Text(
+                        'KONIEC GRY',
+                        style: GoogleFonts.creepster(
+                          textStyle: const TextStyle(
+                            color: ORANGE,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 70,
+                            letterSpacing: 5,
+                          ),
                         ),
                       ),
                     ),
