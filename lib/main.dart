@@ -7,8 +7,7 @@ import 'constants.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 const supabaseUrl = 'https://gpxewdudbpwmjufhkkyx.supabase.co';
-// const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdweGV3ZHVkYnB3bWp1Zmhra3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI3MDY1NzcsImV4cCI6MjA0ODI4MjU3N30.OaUfRwyS0yu79itInY0LS2u4wpnFK2eUcHKn_8CLDgs";
+const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
