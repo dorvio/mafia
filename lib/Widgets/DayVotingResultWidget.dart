@@ -47,7 +47,15 @@ class _DayVotingResultWidgetState extends State<DayVotingResultWidget> {
       await supabaseServices.updateDeadPlayer(id);
       widget.players.updateDeadPlayerById(id);
       int endGame = widget.players.calculateEndGame();
-      endGame != 0 ? supabaseServices.updateGameStatus(widget.gameId, endGame + 1) : null;
+      if (endGame != 0) {
+        Future.delayed(const Duration(seconds: 2), () {
+          supabaseServices.updateGameStatus(widget.gameId, endGame + 1);
+        });
+      } else {
+        setState(() {
+
+        });
+      }
     }
   }
 

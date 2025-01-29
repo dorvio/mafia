@@ -291,6 +291,7 @@ class SupabaseServices {
     List<int> rolesToAssign = [];
     List<int> playersIds = [];
 
+    availableRoles.sort();
     if (playersCount < 5) {
       mafiaCount = 1;
     } else if (playersCount < 8) {

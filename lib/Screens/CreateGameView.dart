@@ -23,7 +23,7 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
   List<String> roles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
   List<IconData> roleIcons = [Icons.sports_bar, Icons.person_search_rounded, Icons.healing, Icons.museum, Icons.church];
   int pauseTime = 2;
-  List<String> selectedRoles = [];
+  List<String> selectedRoles = ["Bimbrownik", "Prokurator","Obrońca","Burmistrz", "Grabarz"];
   SupabaseServices supabaseServices = SupabaseServices();
   Game? game;
   int playersCount = 1;
@@ -249,7 +249,6 @@ class _CreateGameViewState extends State<CreateGameView> with SingleTickerProvid
     };
 
     List<int> selectedRolesIds = selectedRoles.map((role) => roleMapping[role]!).toList();
-
 
     return selectedRolesIds;
   }
